@@ -10,4 +10,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Schedule_Model\Schedule_Model.csproj" />
+    <ProjectReference Include="..\Schedule_Repository\Schedule_Repository.csproj" />
+    <ProjectReference Include="..\Schedule_Service\Schedule_Service.csproj" />
+  </ItemGroup>
+
 </Project>
