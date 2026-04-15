@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Schedule_Service")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b0ed0accb5005499d12d74cdb6238864d4258d1b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f93a2a76049a0d15613313d4f434c28ef21138e7")]
 [assembly: System.Reflection.AssemblyProductAttribute("Schedule_Service")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Schedule_Service")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
