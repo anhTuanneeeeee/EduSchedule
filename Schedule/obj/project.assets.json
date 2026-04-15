@@ -1191,19 +1191,6 @@
           }
         }
       },
-      "Schedule_Model/1.0.0": {
-        "type": "project",
-        "framework": ".NETCoreApp,Version=v8.0",
-        "dependencies": {
-          "Schedule_Repository": "1.0.0"
-        },
-        "compile": {
-          "bin/placeholder/Schedule_Model.dll": {}
-        },
-        "runtime": {
-          "bin/placeholder/Schedule_Model.dll": {}
-        }
-      },
       "Schedule_Repository/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
@@ -1223,7 +1210,6 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
-          "Schedule_Model": "1.0.0",
           "Schedule_Repository": "1.0.0"
         },
         "compile": {
@@ -3482,11 +3468,6 @@
         "useSharedDesignerContext.txt"
       ]
     },
-    "Schedule_Model/1.0.0": {
-      "type": "project",
-      "path": "../Schedule_Model/Schedule_Model.csproj",
-      "msbuildProject": "../Schedule_Model/Schedule_Model.csproj"
-    },
     "Schedule_Repository/1.0.0": {
       "type": "project",
       "path": "../Schedule_Repository/Schedule_Repository.csproj",
@@ -3500,7 +3481,6 @@
   },
   "projectFileDependencyGroups": {
     "net8.0": [
-      "Schedule_Model >= 1.0.0",
       "Schedule_Repository >= 1.0.0",
       "Schedule_Service >= 1.0.0",
       "Swashbuckle.AspNetCore >= 6.6.2"
@@ -3539,9 +3519,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule_Model\\Schedule_Model.csproj": {
-              "projectPath": "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule_Model\\Schedule_Model.csproj"
-            },
             "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule_Repository\\Schedule_Repository.csproj": {
               "projectPath": "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule_Repository\\Schedule_Repository.csproj"
             },

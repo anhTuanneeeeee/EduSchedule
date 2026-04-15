@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Schedule_Model\Schedule_Model.csproj" />
     <ProjectReference Include="..\Schedule_Repository\Schedule_Repository.csproj" />
   </ItemGroup>
 

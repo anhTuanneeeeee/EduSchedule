@@ -5,11 +5,9 @@ VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Schedule", "Schedule.csproj", "{0D8F6B58-9D8A-4966-AE56-6E8A732E5046}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schedule_Model", "..\Schedule_Model\Schedule_Model.csproj", "{F8603D67-53C4-415F-B9DC-4B255888B73B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Schedule_Repository", "..\Schedule_Repository\Schedule_Repository.csproj", "{12E40C97-082D-4561-834E-3A7DB2A0D6E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schedule_Repository", "..\Schedule_Repository\Schedule_Repository.csproj", "{12E40C97-082D-4561-834E-3A7DB2A0D6E3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Schedule_Service", "..\Schedule_Service\Schedule_Service.csproj", "{E87ADBEE-C248-4C52-85CD-8BEB7854F733}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Schedule_Service", "..\Schedule_Service\Schedule_Service.csproj", "{E87ADBEE-C248-4C52-85CD-8BEB7854F733}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,10 +19,6 @@ Global
 		{0D8F6B58-9D8A-4966-AE56-6E8A732E5046}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D8F6B58-9D8A-4966-AE56-6E8A732E5046}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D8F6B58-9D8A-4966-AE56-6E8A732E5046}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8603D67-53C4-415F-B9DC-4B255888B73B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8603D67-53C4-415F-B9DC-4B255888B73B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8603D67-53C4-415F-B9DC-4B255888B73B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8603D67-53C4-415F-B9DC-4B255888B73B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{12E40C97-082D-4561-834E-3A7DB2A0D6E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{12E40C97-082D-4561-834E-3A7DB2A0D6E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{12E40C97-082D-4561-834E-3A7DB2A0D6E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
