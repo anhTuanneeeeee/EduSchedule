@@ -44,7 +44,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ScheduleForTeacher;User Id=sa;Password=EduSchedule@2026;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=eduschedule-db-server-1506.database.windows.net;Database=ScheduleForTeacher;User Id=adminuser;Password=EduSchedule@2026;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
       - JwtSettings__SecretKey=ThisIsAVerySecretKeyForEduScheduleProject2026
       - JwtSettings__Issuer=EduScheduleAPI
       - JwtSettings__Audience=EduScheduleClient
