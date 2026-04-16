@@ -53,8 +53,7 @@
               "RelativeToolTip": "..\\Schedule_Repository\\Models\\ScheduleForTeacherContext.cs",
               "ViewState": "AgIAABoAAAAAAAAAAAA3wDAAAAA6AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T16:52:55.045Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T16:52:55.045Z"
             },
             {
               "$type": "Document",
@@ -62,9 +61,9 @@
               "Title": "appsettings.json",
               "DocumentMoniker": "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
-              "ToolTip": "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule\\appsettings.json*",
-              "RelativeToolTip": "appsettings.json*",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAABgAAAAAAAAAA==",
+              "ToolTip": "D:\\PRN232\\Code\\Backen\\EduSchedule\\Schedule\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-04-15T16:50:03.776Z",
               "EditorCaption": ""
@@ -79,8 +78,7 @@
               "RelativeToolTip": "Program.cs",
               "ViewState": "AgIAAEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-04-15T16:49:56.282Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-15T16:49:56.282Z"
             }
           ]
         }
