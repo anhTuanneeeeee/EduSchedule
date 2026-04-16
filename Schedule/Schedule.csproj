@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Schedule_Repository\Schedule_Repository.csproj" />
     <ProjectReference Include="..\Schedule_Service\Schedule_Service.csproj" />
+    <ProjectReference Include="..\Schedule_Model\Schedule_Model.csproj" />
   </ItemGroup>
 
 </Project>
