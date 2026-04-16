@@ -13,12 +13,12 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetByUsernameAsync(string username)
+    public async Task<User?> GetByUsernameAsync(string email)
     {
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Username == username);
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<User?> GetByEmailAsync(string email)
@@ -59,5 +59,101 @@ public class UserRepository : IUserRepository
     public async Task<Teacher?> GetTeacherByUserIdAsync(long userId)
     {
         return await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
+    }
+
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<User?> GetByIdAsync(int userId)
+    {
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+    }
+
+    public async Task<User?> GetByIdWithRolesAsync(int userId)
+    {
+        return await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
+    }
+
+    public async Task<List<Role>> GetRolesByUserIdAsync(int userId)
+    {
+        return await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.Role)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<List<User>> GetUsersByRoleNameAsync(string roleName)
+    {
+        return await _context.Users
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+            .Where(u => u.UserRoles.Any(ur => ur.Role.RoleName == roleName))
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<bool> UserExistsAsync(int userId)
+    {
+        return await _context.Users.AnyAsync(u => u.UserId == userId);
+    }
+
+    public async Task<bool> IsEmailExistsAsync(string email, int? excludeUserId = null)
+    {
+        return await _context.Users.AnyAsync(u =>
+            u.Email == email &&
+            (!excludeUserId.HasValue || u.UserId != excludeUserId.Value));
+    }
+
+    public async Task<bool> UpdateAsync(User user)
+    {
+        _context.Users.Update(user);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> DeleteAsync(User user)
+    {
+        _context.Users.Remove(user);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> AssignRoleAsync(int userId, int roleId)
+    {
+        bool existed = await _context.UserRoles
+            .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+
+        if (existed)
+            return false;
+
+        var userRole = new UserRole
+        {
+            UserId = userId,
+            RoleId = roleId
+        };
+
+        _context.UserRoles.Add(userRole);
+        return await _context.SaveChangesAsync() > 0;
+    }
+
+    public async Task<bool> RemoveRoleAsync(int userId, int roleId)
+    {
+        var userRole = await _context.UserRoles
+            .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
+
+        if (userRole == null)
+            return false;
+
+        _context.UserRoles.Remove(userRole);
+        return await _context.SaveChangesAsync() > 0;
     }
 }
