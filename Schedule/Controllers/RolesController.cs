@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Schedule_Service.DTOs;
 using Schedule_Service.IService;
 
 namespace Schedule.Controllers
@@ -20,6 +21,21 @@ namespace Schedule.Controllers
         {
             var result = await _roleService.GetAllAsync();
             return Ok(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateRole([FromBody] CreateRoleRequestDto request)
+        {
+            var result = await _roleService.CreateAsync(request);
+
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
+
+            return Ok(new
+            {
+                message = result.Message,
+                data = result.Data
+            });
         }
     }
 }
