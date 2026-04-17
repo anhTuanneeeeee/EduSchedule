@@ -10,5 +10,7 @@ namespace Schedule_Service.IService
     public interface IRoleService
     {
         Task<List<RoleResponseDto>> GetAllAsync();
+        Task<(bool Success, string Message, RoleResponseDto? Data)> CreateAsync(CreateRoleRequestDto request);
     }
 }
+

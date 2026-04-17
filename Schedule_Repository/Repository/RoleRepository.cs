@@ -30,11 +30,27 @@ namespace Schedule_Repository.Repository
             return await _context.Roles
                 .FirstOrDefaultAsync(r => r.RoleId == roleId);
         }
-
+        public async Task<Role?> GetByNameAsync(string roleName)
+        {
+            return await _context.Roles
+                .FirstOrDefaultAsync(r => r.RoleName == roleName);
+        }
         public async Task<bool> RoleExistsAsync(int roleId)
         {
             return await _context.Roles
                 .AnyAsync(r => r.RoleId == roleId);
+        }
+        public async Task<bool> RoleNameExistsAsync(string roleName)
+        {
+            return await _context.Roles
+                .AnyAsync(r => r.RoleName == roleName);
+        }
+
+        public async Task<Role> CreateAsync(Role role)
+        {
+            _context.Roles.Add(role);
+            await _context.SaveChangesAsync();
+            return role;
         }
     }
 }

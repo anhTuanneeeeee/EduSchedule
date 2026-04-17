@@ -1,4 +1,5 @@
 ﻿using Schedule_Repository.IRepository;
+using Schedule_Repository.Models;
 using Schedule_Service.DTOs;
 using Schedule_Service.IService;
 using System;
@@ -27,6 +28,30 @@ namespace Schedule_Service.Service
                 RoleId = (int)r.RoleId,
                 RoleName = r.RoleName
             }).ToList();
+        }
+        public async Task<(bool Success, string Message, RoleResponseDto? Data)> CreateAsync(CreateRoleRequestDto request)
+        {
+            if (string.IsNullOrWhiteSpace(request.RoleName))
+                return (false, "RoleName không được để trống.", null);
+
+            bool existed = await _roleRepository.RoleNameExistsAsync(request.RoleName.Trim());
+            if (existed)
+                return (false, "Role đã tồn tại.", null);
+
+            var role = new Role
+            {
+                RoleName = request.RoleName.Trim()
+            };
+
+            var createdRole = await _roleRepository.CreateAsync(role);
+
+            var response = new RoleResponseDto
+            {
+                RoleId = (int)createdRole.RoleId,
+                RoleName = createdRole.RoleName
+            };
+
+            return (true, "Tạo role thành công.", response);
         }
     }
 }
