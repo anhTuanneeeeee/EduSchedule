@@ -45,8 +45,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<ScheduleForTeacherContext>(option =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("LocalConnection"));
-    //option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    //option.UseSqlServer(builder.Configuration.GetConnectionString("LocalConnection"));
+    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // JWT Authentication Configuration
