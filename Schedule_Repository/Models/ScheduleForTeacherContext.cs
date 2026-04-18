@@ -56,7 +56,8 @@ public partial class ScheduleForTeacherContext : DbContext
         IConfiguration configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", true, true).Build();
-        return configuration["ConnectionStrings:DefaultConnection"];
+        return configuration["ConnectionStrings:LocalConnection"];
+        //return configuration["ConnectionStrings:DefaultConnection"];
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

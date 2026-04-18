@@ -45,7 +45,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContext<ScheduleForTeacherContext>(option =>
 {
-    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    option.UseSqlServer(builder.Configuration.GetConnectionString("LocalConnection"));
+    //option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 // JWT Authentication Configuration
@@ -85,6 +86,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<ISemesterService, SemesterService>();
+builder.Services.AddScoped<IProjectCourseRepository, ProjectCourseRepository>();
+builder.Services.AddScoped<IProjectCourseService, ProjectCourseService>();
+builder.Services.AddScoped<IProjectGroupRepository, ProjectGroupRepository>();
+builder.Services.AddScoped<IProjectGroupService, ProjectGroupService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
