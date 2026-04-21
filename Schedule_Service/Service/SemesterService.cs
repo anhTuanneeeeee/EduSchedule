@@ -61,7 +61,7 @@ namespace Schedule_Service.Service
                 SemesterCode = request.SemesterCode.Trim(),
                 SemesterName = request.SemesterName.Trim(),
                 AcademicYear = request.AcademicYear.Trim(),
-                TermNumber = request.TermNumber,
+                TernNumber = request.TermNumber,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
                 IsActive = request.IsActive
@@ -104,7 +104,7 @@ namespace Schedule_Service.Service
             semester.SemesterCode = request.SemesterCode.Trim();
             semester.SemesterName = request.SemesterName.Trim();
             semester.AcademicYear = request.AcademicYear.Trim();
-            semester.TermNumber = request.TermNumber;
+            semester.TernNumber = request.TermNumber;
             semester.StartDate = request.StartDate;
             semester.EndDate = request.EndDate;
             semester.IsActive = request.IsActive;
@@ -141,7 +141,7 @@ namespace Schedule_Service.Service
                 SemesterCode = semester.SemesterCode,
                 SemesterName = semester.SemesterName,
                 AcademicYear = semester.AcademicYear,
-                TermNumber = semester.TermNumber,
+                TermNumber = (int)semester.TernNumber,
                 StartDate = semester.StartDate,
                 EndDate = semester.EndDate,
                 IsActive = semester.IsActive

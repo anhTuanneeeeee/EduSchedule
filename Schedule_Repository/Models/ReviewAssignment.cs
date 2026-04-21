@@ -9,15 +9,15 @@ public partial class ReviewAssignment
 
     public long ReviewRoundId { get; set; }
 
+    public long AssignedByUserId { get; set; }
+
     public DateOnly AssignedDate { get; set; }
 
     public long TimeSlotId { get; set; }
 
-    public long AssignedByUserId { get; set; }
+    public string? Location { get; set; }
 
     public string Status { get; set; } = null!;
-
-    public string? Location { get; set; }
 
     public string? Note { get; set; }
 

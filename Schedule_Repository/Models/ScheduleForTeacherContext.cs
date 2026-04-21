@@ -1,7 +1,7 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Schedule_Repository.Models;
 
@@ -44,12 +44,8 @@ public partial class ScheduleForTeacherContext : DbContext
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
 
-    /*protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=Tuandeptrai;Database=ScheduleForTeacher;Uid=sa;Pwd=12345;TrustServerCertificate=True");*/
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-       => optionsBuilder.UseSqlServer(GetConnectionString());
+   => optionsBuilder.UseSqlServer(GetConnectionString());
 
     private string GetConnectionString()
     {
@@ -59,12 +55,11 @@ public partial class ScheduleForTeacherContext : DbContext
         //return configuration["ConnectionStrings:LocalConnection"];
         return configuration["ConnectionStrings:DefaultConnection"];
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ProjectCourse>(entity =>
         {
-            entity.HasKey(e => e.ProjectCourseId).HasName("PK__ProjectC__E26F9A2E84D8E39F");
-
             entity.HasIndex(e => new { e.SemesterId, e.CourseCode }, "UQ_ProjectCourses_SemesterId_CourseCode").IsUnique();
 
             entity.Property(e => e.CourseCode)
@@ -81,8 +76,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<ProjectGroup>(entity =>
         {
-            entity.HasKey(e => e.ProjectGroupId).HasName("PK__ProjectG__17125D9E20CF4E3C");
-
             entity.HasIndex(e => e.ProjectCourseId, "IX_ProjectGroups_ProjectCourseId");
 
             entity.HasIndex(e => new { e.ProjectCourseId, e.GroupCode }, "UQ_ProjectGroups_ProjectCourseId_GroupCode").IsUnique();
@@ -104,8 +97,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<ProjectSupervisor>(entity =>
         {
-            entity.HasKey(e => e.ProjectSupervisorId).HasName("PK__ProjectS__4986CDDDFA7D70CE");
-
             entity.HasIndex(e => e.ProjectGroupId, "IX_ProjectSupervisors_ProjectGroupId");
 
             entity.HasIndex(e => e.TeacherId, "IX_ProjectSupervisors_TeacherId");
@@ -131,8 +122,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<ReviewAssignment>(entity =>
         {
-            entity.HasKey(e => e.ReviewAssignmentId).HasName("PK__ReviewAs__5FDBB6CAF1E3CDF9");
-
             entity.HasIndex(e => new { e.AssignedDate, e.TimeSlotId }, "IX_ReviewAssignments_AssignedDate_TimeSlotId");
 
             entity.HasIndex(e => e.ReviewRoundId, "UQ_ReviewAssignments_ReviewRoundId").IsUnique();
@@ -162,8 +151,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<ReviewAssignmentTeacher>(entity =>
         {
-            entity.HasKey(e => e.ReviewAssignmentTeacherId).HasName("PK__ReviewAs__2E4545EFAE243FE1");
-
             entity.HasIndex(e => e.TeacherId, "IX_ReviewAssignmentTeachers_TeacherId");
 
             entity.HasIndex(e => new { e.ReviewAssignmentId, e.TeacherId }, "UQ_ReviewAssignmentTeachers_ReviewAssignmentId_TeacherId").IsUnique();
@@ -185,8 +172,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<ReviewRound>(entity =>
         {
-            entity.HasKey(e => e.ReviewRoundId).HasName("PK__ReviewRo__CD352976C364E68F");
-
             entity.HasIndex(e => e.ProjectGroupId, "IX_ReviewRounds_ProjectGroupId");
 
             entity.HasIndex(e => new { e.ProjectGroupId, e.RoundNumber }, "UQ_ReviewRounds_ProjectGroupId_RoundNumber").IsUnique();
@@ -205,8 +190,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A3A4D9F76");
-
             entity.HasIndex(e => e.RoleCode, "UQ_Roles_RoleCode").IsUnique();
 
             entity.Property(e => e.Description).HasMaxLength(255);
@@ -218,8 +201,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<Semester>(entity =>
         {
-            entity.HasKey(e => e.SemesterId).HasName("PK__Semester__043301DD88715831");
-
             entity.HasIndex(e => e.SemesterCode, "UQ_Semesters_SemesterCode").IsUnique();
 
             entity.Property(e => e.AcademicYear)
@@ -230,12 +211,12 @@ public partial class ScheduleForTeacherContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.SemesterName).HasMaxLength(200);
+            entity.Property(e => e.TernNumber).HasColumnType("integer");
+
         });
 
         modelBuilder.Entity<Teacher>(entity =>
         {
-            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25964E7DAC1CC");
-
             entity.HasIndex(e => e.TeacherCode, "UQ_Teachers_TeacherCode").IsUnique();
 
             entity.HasIndex(e => e.UserId, "UQ_Teachers_UserId").IsUnique();
@@ -257,8 +238,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<TeacherAvailability>(entity =>
         {
-            entity.HasKey(e => e.TeacherAvailabilityId).HasName("PK__TeacherA__A845A5B858C16397");
-
             entity.HasIndex(e => new { e.TeacherId, e.AvailableDate }, "IX_TeacherAvailabilities_TeacherId_AvailableDate");
 
             entity.HasIndex(e => new { e.TeacherId, e.AvailableDate, e.TimeSlotId }, "UQ_TeacherAvailabilities_TeacherId_AvailableDate_TimeSlotId").IsUnique();
@@ -282,13 +261,11 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<TeacherCompatibility>(entity =>
         {
-            entity.HasKey(e => e.TeacherCompatibilityId).HasName("PK__TeacherC__1AF11416AC866B79");
-
             entity.HasIndex(e => new { e.TeacherId1, e.TeacherId2 }, "UQ_TeacherCompatibilities_TeacherId1_TeacherId2").IsUnique();
 
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.PreferenceType)
-                .HasMaxLength(50)
+                .HasMaxLength(50) 
                 .IsUnicode(false)
                 .HasDefaultValue("NEUTRAL");
 
@@ -305,8 +282,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<TimeSlot>(entity =>
         {
-            entity.HasKey(e => e.TimeSlotId).HasName("PK__TimeSlot__41CC1F325A3121DD");
-
             entity.HasIndex(e => e.SlotNumber, "UQ_TimeSlots_SlotNumber").IsUnique();
 
             entity.Property(e => e.IsActive).HasDefaultValue(true);
@@ -315,8 +290,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C9BC35529");
-
             entity.HasIndex(e => e.Email, "UQ_Users_Email").IsUnique();
 
             entity.HasIndex(e => e.Username, "UQ_Users_Username").IsUnique();
@@ -339,8 +312,6 @@ public partial class ScheduleForTeacherContext : DbContext
 
         modelBuilder.Entity<UserRole>(entity =>
         {
-            entity.HasKey(e => e.UserRoleId).HasName("PK__UserRole__3D978A3594C1EE28");
-
             entity.HasIndex(e => new { e.UserId, e.RoleId }, "UQ_UserRoles_UserId_RoleId").IsUnique();
 
             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)

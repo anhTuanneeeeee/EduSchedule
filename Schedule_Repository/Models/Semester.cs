@@ -13,13 +13,13 @@ public partial class Semester
 
     public string AcademicYear { get; set; } = null!;
 
-    public int TermNumber { get; set; }
-
     public DateOnly StartDate { get; set; }
 
     public DateOnly EndDate { get; set; }
 
     public bool IsActive { get; set; }
+
+    public int? TernNumber { get; set; }
 
     public virtual ICollection<ProjectCourse> ProjectCourses { get; set; } = new List<ProjectCourse>();
 }

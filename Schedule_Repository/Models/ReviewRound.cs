@@ -11,9 +11,7 @@ public partial class ReviewRound
 
     public int RoundNumber { get; set; }
 
-    public string RoundName { get; set; } = null!;
-
-    public DateOnly? PlannedDate { get; set; }
+    public string? RoundName { get; set; }
 
     public string Status { get; set; } = null!;
 

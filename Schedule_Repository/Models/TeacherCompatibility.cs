@@ -11,8 +11,6 @@ public partial class TeacherCompatibility
 
     public long TeacherId2 { get; set; }
 
-    public int CompatibilityScore { get; set; }
-
     public string PreferenceType { get; set; } = null!;
 
     public string? Note { get; set; }
