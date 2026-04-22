@@ -99,7 +99,8 @@ builder.Services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRe
 builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
 builder.Services.AddScoped<IReviewAssignmentRepository, ReviewAssignmentRepository>();
 builder.Services.AddScoped<IReviewAssignmentTeacherRepository, ReviewAssignmentTeacherRepository>();
-
+builder.Services.AddScoped<IReviewAssignmentQueryRepository, ReviewAssignmentQueryRepository>();
+builder.Services.AddScoped<IReviewAssignmentQueryService, ReviewAssignmentQueryService>();
 builder.Services.AddScoped<IReviewSchedulingService, ReviewSchedulingService>();
 var app = builder.Build();
 
