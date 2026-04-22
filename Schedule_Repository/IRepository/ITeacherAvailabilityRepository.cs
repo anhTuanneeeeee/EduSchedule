@@ -15,5 +15,7 @@ namespace Schedule_Repository.IRepository
         Task<TeacherAvailability> CreateAsync(TeacherAvailability entity);
         Task<bool> UpdateAsync(TeacherAvailability entity);
         Task<bool> DeleteAsync(TeacherAvailability entity);
+
+        Task<List<TeacherAvailability>> GetAvailableInRangeAsync(DateOnly fromDate, DateOnly toDate, List<long>? timeSlotIds = null);
     }
 }

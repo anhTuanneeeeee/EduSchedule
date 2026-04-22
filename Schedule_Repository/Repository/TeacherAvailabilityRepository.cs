@@ -78,5 +78,21 @@ namespace Schedule_Repository.Repository
             _context.TeacherAvailabilities.Remove(entity);
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<List<TeacherAvailability>> GetAvailableInRangeAsync(DateOnly fromDate, DateOnly toDate, List<long>? timeSlotIds = null)
+        {
+            var query = _context.TeacherAvailabilities
+                .Where(x =>
+                    x.AvailableDate >= fromDate &&
+                    x.AvailableDate <= toDate &&
+                    (x.AvailabilityStatus == "AVAILABLE" || x.AvailabilityStatus == "PREFERRED"))
+                .AsNoTracking();
+
+            if (timeSlotIds != null && timeSlotIds.Any())
+            {
+                query = query.Where(x => timeSlotIds.Contains(x.TimeSlotId));
+            }
+
+            return await query.ToListAsync();
+        }
     }
 }

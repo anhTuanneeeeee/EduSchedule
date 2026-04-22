@@ -23,5 +23,20 @@ namespace Schedule_Repository.Repository
             return await _context.TimeSlots
                 .FirstOrDefaultAsync(x => x.TimeSlotId == timeSlotId);
         }
+        public async Task<List<TimeSlot>> GetActiveAsync(List<long>? timeSlotIds = null)
+        {
+            var query = _context.TimeSlots
+                .Where(x => x.IsActive)
+                .AsNoTracking();
+
+            if (timeSlotIds != null && timeSlotIds.Any())
+            {
+                query = query.Where(x => timeSlotIds.Contains(x.TimeSlotId));
+            }
+
+            return await query
+                .OrderBy(x => x.SlotNumber)
+                .ToListAsync();
+        }
     }
 }
