@@ -9,4 +9,6 @@ public interface ITeacherRepository
     Task<List<TeacherAvailability>> GetAvailabilityAsync(long teacherId, DateOnly date);
     Task SaveAvailabilityAsync(long teacherId, DateOnly date, List<long> timeSlotIds, string? note);
     Task<Teacher> CreateTeacherProfileAsync(Teacher teacher);
+    Task<Teacher?> GetByUserIdAsync(long userId);
+    Task<Teacher?> GetByTeacherCodeAsync(string teacherCode);
 }

@@ -67,4 +67,16 @@ public class TeacherRepository : ITeacherRepository
         await _context.SaveChangesAsync();
         return teacher;
     }
+    public async Task<Teacher?> GetByUserIdAsync(long userId)
+    {
+        return await _context.Teachers
+            .Include(x => x.User)
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+    }
+    public async Task<Teacher?> GetByTeacherCodeAsync(string teacherCode)
+    {
+        return await _context.Teachers
+            .Include(x => x.User)
+            .FirstOrDefaultAsync(x => x.TeacherCode == teacherCode);
+    }
 }
