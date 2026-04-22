@@ -11,4 +11,6 @@ public interface ITeacherRepository
     Task<Teacher> CreateTeacherProfileAsync(Teacher teacher);
     Task<Teacher?> GetByUserIdAsync(long userId);
     Task<Teacher?> GetByTeacherCodeAsync(string teacherCode);
+    Task<List<Teacher>> GetAvailableForReviewAsync();
+    Task<List<Teacher>> GetByIdsAsync(List<long> teacherIds);
 }

@@ -79,4 +79,20 @@ public class TeacherRepository : ITeacherRepository
             .Include(x => x.User)
             .FirstOrDefaultAsync(x => x.TeacherCode == teacherCode);
     }
+    public async Task<List<Teacher>> GetAvailableForReviewAsync()
+    {
+        return await _context.Teachers
+            .Include(x => x.User)
+            .Where(x => x.IsAvailableForProjectReview && x.User.IsActive)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+    public async Task<List<Teacher>> GetByIdsAsync(List<long> teacherIds)
+    {
+        return await _context.Teachers
+            .Include(x => x.User)
+            .Where(x => teacherIds.Contains(x.TeacherId))
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

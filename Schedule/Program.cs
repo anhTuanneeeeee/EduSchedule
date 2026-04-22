@@ -93,6 +93,14 @@ builder.Services.AddScoped<IProjectGroupService, ProjectGroupService>();
 builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
 builder.Services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRepository>();
 builder.Services.AddScoped<ITeacherAvailabilityService, TeacherAvailabilityService>();
+builder.Services.AddScoped<IReviewRoundRepository, ReviewRoundRepository>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRepository>();
+builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
+builder.Services.AddScoped<IReviewAssignmentRepository, ReviewAssignmentRepository>();
+builder.Services.AddScoped<IReviewAssignmentTeacherRepository, ReviewAssignmentTeacherRepository>();
+
+builder.Services.AddScoped<IReviewSchedulingService, ReviewSchedulingService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
