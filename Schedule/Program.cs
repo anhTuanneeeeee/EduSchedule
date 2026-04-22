@@ -90,6 +90,9 @@ builder.Services.AddScoped<IProjectCourseRepository, ProjectCourseRepository>();
 builder.Services.AddScoped<IProjectCourseService, ProjectCourseService>();
 builder.Services.AddScoped<IProjectGroupRepository, ProjectGroupRepository>();
 builder.Services.AddScoped<IProjectGroupService, ProjectGroupService>();
+builder.Services.AddScoped<ITimeSlotRepository, TimeSlotRepository>();
+builder.Services.AddScoped<ITeacherAvailabilityRepository, TeacherAvailabilityRepository>();
+builder.Services.AddScoped<ITeacherAvailabilityService, TeacherAvailabilityService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
