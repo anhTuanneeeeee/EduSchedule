@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduSchedule - My Final Schedule</title>
+    <title>EduSchedule - My Review Schedule</title>
     <link rel="stylesheet" href="css/styles.css">
     <style>
         .schedule-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
         }
         .final-card {
             background: white;
-            padding: 2rem;
+            padding: 2rem 2rem 2rem 2.5rem;
             border-radius: 24px;
             box-shadow: var(--shadow-sm);
-            border: 1px solid rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.04);
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
             position: relative;
             overflow: hidden;
         }
@@ -26,51 +26,97 @@
             content: '';
             position: absolute;
             top: 0; left: 0; width: 6px; height: 100%;
-            background: var(--primary);
+            background: linear-gradient(180deg, var(--primary), #818cf8);
+            border-radius: 24px 0 0 24px;
         }
         .final-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-6px);
             box-shadow: var(--shadow-lg);
         }
-        .date-badge {
-            font-size: 1.2rem;
+        .card-day {
+            font-size: 0.75rem;
             font-weight: 800;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
-        }
-        .day-name {
-            color: var(--text-muted);
+            color: var(--primary);
             text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+        .card-date {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 1rem;
         }
         .slot-pill {
-            display: inline-block;
-            padding: 0.5rem 1rem;
-            background: rgba(79, 70, 229, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.45rem 1rem;
+            background: rgba(79,70,229,0.08);
             color: var(--primary);
             border-radius: 10px;
             font-weight: 700;
-            margin-top: 1rem;
+            font-size: 0.9rem;
         }
-        .room-info {
-            margin-top: 1.5rem;
+        .info-row {
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-top: 1rem;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .info-icon {
+            width: 34px; height: 34px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+        .group-tag {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: white;
+            background: var(--primary);
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+        .co-panel {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        .co-panel-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        .co-teacher-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
             font-weight: 600;
             color: #475569;
+            margin: 3px 3px 3px 0;
         }
-        .room-icon {
-            width: 32px;
-            height: 32px;
-            background: #f1f5f9;
-            border-radius: 8px;
+        .filter-bar {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            gap: 1rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
         }
+        .filter-bar .input-group { margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -83,54 +129,73 @@
                 <a href="teacher_availability.html" style="text-decoration: none; color: var(--text-muted); font-weight: 600;">Register Availability</a>
                 <a href="teacher_schedule.html" style="text-decoration: none; color: var(--primary); font-weight: 800; border-bottom: 2px solid var(--primary);">My Schedule</a>
             </nav>
+            <div id="teacherInfo" class="glass-card" style="padding: 0.5rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; border-radius: 50px;">
+                <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">T</div>
+                <span id="userName" style="font-weight: 600; color: #1e293b;">Teacher</span>
+            </div>
             <button class="btn" style="padding: 0.6rem 1.2rem; background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
         </div>
     </header>
 
-    <main class="container">
-        <div style="margin-bottom: 3rem;">
-            <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Confirmed Review Schedule</h1>
-            <p style="color: var(--text-muted); font-size: 1.1rem;">Below is your final assigned schedule. Please check the rooms and times carefully.</p>
+    <main class="container" style="max-width: 1200px;">
+        <div style="margin-bottom: 2.5rem;">
+            <h1 style="font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 0.5rem;">My Review Schedule</h1>
+            <p style="color: var(--text-muted); font-size: 1.05rem;">Your assigned review sessions. Please check rooms and times carefully.</p>
         </div>
 
         <div id="mainAlert" class="alert"></div>
 
-        <div id="scheduleContainer" class="schedule-grid">
-            <!-- Cards will be injected here -->
+        <div class="glass-card" style="padding: 1.5rem 2rem; margin-bottom: 2rem;">
+            <div class="filter-bar">
+                <div class="input-group">
+                    <label>From Date</label>
+                    <input type="date" id="fromDate" style="width: 180px;">
+                </div>
+                <div class="input-group">
+                    <label>To Date</label>
+                    <input type="date" id="toDate" style="width: 180px;">
+                </div>
+                <button class="btn btn-primary" onclick="loadSchedule()" style="padding: 0.85rem 2rem; border-radius: 12px; font-weight: 700;">🔍 Filter</button>
+                <button class="btn" onclick="clearFilter()" style="padding: 0.85rem 1.5rem; border-radius: 12px; background: #f1f5f9;">Clear</button>
+            </div>
+            <div id="summaryBar" style="font-size: 0.9rem; color: var(--text-muted); font-weight: 600;"></div>
         </div>
 
-        <div id="emptyState" style="display: none; text-align: center; padding: 5rem 2rem;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
-            <h3 style="color: #64748b;">No schedule assigned yet.</h3>
-            <p style="color: #94a3b8;">Admin hasn't released the final schedule or you haven't been assigned to any slots.</p>
+        <div id="scheduleContainer" class="schedule-grid"></div>
+
+        <div id="emptyState" style="display: none; text-align: center; padding: 6rem 2rem;">
+            <div style="font-size: 5rem; margin-bottom: 1.5rem;">📭</div>
+            <h3 style="color: #64748b; font-size: 1.4rem; margin-bottom: 0.5rem;">No assignments yet.</h3>
+            <p style="color: #94a3b8;">Admin hasn't assigned any review sessions for you, or try adjusting the date filter.</p>
         </div>
     </main>
 
     <script src="js/api.js"></script>
     <script>
         if (!auth.hasRole('TEACHER')) window.location.href = 'index.html';
+        document.getElementById('userName').textContent = auth.getUser().fullName;
 
-        async function init() {
+        async function loadSchedule() {
             ui.showLoader();
             try {
-                const user = auth.getUser();
-                // We use a generic get results and filter by teacher on frontend OR if the API exists for teacher specifically
-                // Looking at SchedulingController, we have GetResults(semesterId)
-                // Let's get results for the active semester
-                const semesters = await api.get('/Semesters');
-                if (semesters.length === 0) {
-                    showEmpty();
-                    return;
-                }
+                const from = document.getElementById('fromDate').value;
+                const to   = document.getElementById('toDate').value;
+                let url = '/review-assignments/my-schedule';
+                const params = [];
+                if (from) params.push(`fromDate=${from}`);
+                if (to)   params.push(`toDate=${to}`);
+                if (params.length) url += '?' + params.join('&');
 
-                // Get result for the first active semester found
-                const results = await api.get(`/Scheduling/results?semesterId=${semesters[0].semesterId}`);
-                const myResults = results.filter(r => r.userId == user.userId);
+                const items = await api.get(url);
 
-                if (myResults.length === 0) {
-                    showEmpty();
+                if (!items || items.length === 0) {
+                    document.getElementById('scheduleContainer').innerHTML = '';
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('summaryBar').textContent = '';
                 } else {
-                    renderMySchedule(myResults);
+                    document.getElementById('emptyState').style.display = 'none';
+                    document.getElementById('summaryBar').textContent = `Showing ${items.length} assignment(s)`;
+                    renderSchedule(items);
                 }
             } catch (error) {
                 ui.showAlert('mainAlert', error.message);
@@ -139,32 +204,93 @@
             }
         }
 
-        function showEmpty() {
-            document.getElementById('emptyState').style.display = 'block';
+        function clearFilter() {
+            document.getElementById('fromDate').value = '';
+            document.getElementById('toDate').value = '';
+            loadSchedule();
         }
 
-        function renderMySchedule(items) {
+        function renderSchedule(items) {
             const container = document.getElementById('scheduleContainer');
             container.innerHTML = items.map(item => {
-                const dateObj = new Date(item.date);
-                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
-                const dateStr = dateObj.toLocaleDateString('vi-VN');
+                // Date display - API returns "2026-04-25" format for DateOnly
+                const dateStr = item.assignedDate ? String(item.assignedDate).substring(0, 10) : null;
+                const dateObj = dateStr ? new Date(dateStr + 'T00:00:00') : null;
+                const dayName = dateObj ? dateObj.toLocaleDateString('en-US', { weekday: 'long' }) : 'TBD';
+                const dateDisplay = dateObj ? dateObj.toLocaleDateString('vi-VN') : 'TBD';
+
+                // Slot
+                const slotName = item.slotName || 'Pending';
+                const startTime = item.startTime || '';
+                const endTime   = item.endTime   || '';
+                const timeRange = startTime ? `${startTime.substring(0,5)} – ${endTime.substring(0,5)}` : '';
+
+                // Room
+                const room = item.location || '<span style="color:#f59e0b;">Room Not Set</span>';
+
+                // Group info
+                const groupCode  = item.groupCode  || 'N/A';
+                const groupName  = item.groupName  || '';
+                const courseName = item.courseName || '';
+                const roundNum   = item.roundNumber || 1;
+
+                // My role - find by fullName of logged in user
+                const myName = auth.getUser().fullName;
+                const myEntry = (item.teachers || []).find(t => t.fullName === myName);
+                const myRole  = myEntry?.roleInPanel || 'REVIEWER';
+
+                // Co-panelists (others)
+                const coPanelists = (item.teachers || []).filter(t => t.fullName !== myName);
+
+                const statusColor = item.status === 'CONFIRMED' ? '#10b981'
+                                  : item.status === 'OPEN'      ? '#f59e0b'
+                                  : '#94a3b8';
 
                 return `
-                    <div class="final-card fade-in">
-                        <div class="day-name">${dayName}</div>
-                        <div class="date-badge">${dateStr}</div>
-                        <div class="slot-pill">${item.slotName}</div>
-                        <div class="room-info">
-                            <div class="room-icon">🪑</div>
-                            <span>Room: <strong style="color: #0f172a;">${item.roomName}</strong></span>
+                <div class="final-card fade-in">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem;">
+                        <div>
+                            <div class="card-day">${dayName}</div>
+                            <div class="card-date">${dateDisplay}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="display:inline-block; padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:800; background:${statusColor}22; color:${statusColor};">${item.status || 'DRAFT'}</span>
+                            <div style="margin-top:6px;"><span class="group-tag">Round ${roundNum}</span></div>
                         </div>
                     </div>
-                `;
+
+                    <div style="margin-bottom:0.75rem;">
+                        <div style="font-weight:800; color:#0f172a; font-size:1rem;">${groupCode} &mdash; ${groupName}</div>
+                        <div style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">${courseName}</div>
+                    </div>
+
+                    <div class="slot-pill">🕐 ${slotName}${timeRange ? ' &nbsp;(' + timeRange + ')' : ''}</div>
+
+                    <div class="info-row">
+                        <div class="info-icon">🏫</div>
+                        <span>Room: <strong style="color:#0f172a;">${room}</strong></span>
+                    </div>
+
+                    <div class="info-row" style="margin-top:0.6rem;">
+                        <div class="info-icon">🎖️</div>
+                        <span>Your role: <strong style="color:var(--primary);">${myRole}</strong></span>
+                    </div>
+
+                    ${coPanelists.length > 0 ? `
+                    <div class="co-panel">
+                        <div class="co-panel-title">Panel Members</div>
+                        ${coPanelists.map(t => `
+                            <span class="co-teacher-chip">
+                                <span style="width:20px;height:20px;background:var(--primary);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:0.7rem;font-weight:800;">${t.teacherCode.charAt(0)}</span>
+                                ${t.teacherCode} – ${t.fullName}
+                            </span>
+                        `).join('')}
+                    </div>` : ''}
+                </div>`;
             }).join('');
         }
 
-        init();
+        loadSchedule();
     </script>
 </body>
 </html>

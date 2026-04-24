@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,13 @@ namespace Schedule_Service.DTOs
         public long ReviewRoundId { get; set; }
         public int RoundNumber { get; set; }
         public string? RoundName { get; set; }
+
+        // Date & Slot (flat fields for my-schedule endpoint)
+        public DateOnly AssignedDate { get; set; }
+        public long TimeSlotId { get; set; }
+        public string SlotName { get; set; } = string.Empty;
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
 
         public long ProjectGroupId { get; set; }
         public string GroupCode { get; set; } = string.Empty;

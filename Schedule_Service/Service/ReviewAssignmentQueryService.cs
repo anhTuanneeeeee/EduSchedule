@@ -1,4 +1,5 @@
-﻿using Schedule_Repository.Models;
+using Schedule_Repository.IRepository;
+using Schedule_Repository.Models;
 using Schedule_Repository.Repository;
 using Schedule_Service.DTOs;
 using System;
@@ -12,10 +13,14 @@ namespace Schedule_Service.Service
     public class ReviewAssignmentQueryService : IReviewAssignmentQueryService
     {
         private readonly IReviewAssignmentQueryRepository _reviewAssignmentQueryRepository;
+        private readonly IUserRepository _userRepository;
 
-        public ReviewAssignmentQueryService(IReviewAssignmentQueryRepository reviewAssignmentQueryRepository)
+        public ReviewAssignmentQueryService(
+            IReviewAssignmentQueryRepository reviewAssignmentQueryRepository,
+            IUserRepository userRepository)
         {
             _reviewAssignmentQueryRepository = reviewAssignmentQueryRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<(bool Success, string Message, List<ScheduleOverviewDateDto>? Data)> GetScheduleOverviewAsync(
@@ -80,6 +85,12 @@ namespace Schedule_Service.Service
                 RoundNumber = item.ReviewRound.RoundNumber,
                 RoundName = item.ReviewRound.RoundName,
 
+                AssignedDate = item.AssignedDate,
+                TimeSlotId = item.TimeSlotId,
+                SlotName = item.TimeSlot?.SlotName ?? string.Empty,
+                StartTime = item.TimeSlot?.StartTime.ToString(@"hh\:mm") ?? string.Empty,
+                EndTime = item.TimeSlot?.EndTime.ToString(@"hh\:mm") ?? string.Empty,
+
                 ProjectGroupId = item.ReviewRound.ProjectGroupId,
                 GroupCode = item.ReviewRound.ProjectGroup.GroupCode,
                 GroupName = item.ReviewRound.ProjectGroup.GroupName,
@@ -108,6 +119,20 @@ namespace Schedule_Service.Service
                     })
                     .ToList()
             };
+        }
+
+        public async Task<(bool Success, string Message, List<ScheduleOverviewAssignmentDto>? Data)> GetMyScheduleAsync(
+            long userId,
+            DateOnly? fromDate = null,
+            DateOnly? toDate = null)
+        {
+            var teacher = await _userRepository.GetTeacherByUserIdAsync(userId);
+            if (teacher == null)
+                return (false, "Không tìm thấy hồ sơ giảng viên.", null);
+
+            var assignments = await _reviewAssignmentQueryRepository.GetMyScheduleAsync(teacher.TeacherId, fromDate, toDate);
+            var data = assignments.Select(MapAssignmentDto).ToList();
+            return (true, "OK", data);
         }
     }
 }

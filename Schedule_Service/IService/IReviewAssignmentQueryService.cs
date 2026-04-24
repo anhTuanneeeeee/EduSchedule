@@ -1,4 +1,4 @@
-﻿using Schedule_Service.DTOs;
+using Schedule_Service.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +14,10 @@ namespace Schedule_Service.Service
             DateOnly? fromDate = null,
             DateOnly? toDate = null,
             string? status = null);
+
+        Task<(bool Success, string Message, List<ScheduleOverviewAssignmentDto>? Data)> GetMyScheduleAsync(
+            long userId,
+            DateOnly? fromDate = null,
+            DateOnly? toDate = null);
     }
 }

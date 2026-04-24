@@ -1,4 +1,4 @@
-﻿using Schedule_Repository.IRepository;
+using Schedule_Repository.IRepository;
 using Schedule_Repository.Models;
 using Schedule_Service.DTOs;
 using Schedule_Service.IService;
@@ -61,7 +61,6 @@ namespace Schedule_Service.Service
                 SemesterCode = request.SemesterCode.Trim(),
                 SemesterName = request.SemesterName.Trim(),
                 AcademicYear = request.AcademicYear.Trim(),
-                TernNumber = request.TermNumber,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
                 IsActive = request.IsActive
@@ -104,7 +103,6 @@ namespace Schedule_Service.Service
             semester.SemesterCode = request.SemesterCode.Trim();
             semester.SemesterName = request.SemesterName.Trim();
             semester.AcademicYear = request.AcademicYear.Trim();
-            semester.TernNumber = request.TermNumber;
             semester.StartDate = request.StartDate;
             semester.EndDate = request.EndDate;
             semester.IsActive = request.IsActive;
@@ -141,7 +139,7 @@ namespace Schedule_Service.Service
                 SemesterCode = semester.SemesterCode,
                 SemesterName = semester.SemesterName,
                 AcademicYear = semester.AcademicYear,
-                TermNumber = (int)semester.TernNumber,
+                TermNumber = 0, // Column removed from DB
                 StartDate = semester.StartDate,
                 EndDate = semester.EndDate,
                 IsActive = semester.IsActive

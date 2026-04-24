@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Schedule_Repository.Models;
 using System;
 using System.Collections.Generic;
@@ -51,6 +51,31 @@ namespace Schedule_Repository.Repository
                 .OrderBy(x => x.AssignedDate)
                 .ThenBy(x => x.TimeSlot.SlotNumber)
                 .ThenBy(x => x.ReviewRound.ProjectGroup.GroupCode)
+                .ToListAsync();
+        }
+
+        public async Task<List<ReviewAssignment>> GetMyScheduleAsync(long teacherId, DateOnly? fromDate = null, DateOnly? toDate = null)
+        {
+            var query = _context.ReviewAssignments
+                .Include(x => x.TimeSlot)
+                .Include(x => x.ReviewAssignmentTeachers)
+                    .ThenInclude(x => x.Teacher)
+                        .ThenInclude(x => x.User)
+                .Include(x => x.ReviewRound)
+                    .ThenInclude(x => x.ProjectGroup)
+                        .ThenInclude(x => x.ProjectCourse)
+                            .ThenInclude(x => x.Semester)
+                .Where(x => x.ReviewAssignmentTeachers.Any(t => t.TeacherId == teacherId))
+                .AsNoTracking();
+
+            if (fromDate.HasValue)
+                query = query.Where(x => x.AssignedDate >= fromDate.Value);
+            if (toDate.HasValue)
+                query = query.Where(x => x.AssignedDate <= toDate.Value);
+
+            return await query
+                .OrderBy(x => x.AssignedDate)
+                .ThenBy(x => x.TimeSlot.SlotNumber)
                 .ToListAsync();
         }
     }
