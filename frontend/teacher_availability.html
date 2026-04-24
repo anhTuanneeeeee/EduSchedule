@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - Weekly Availability</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .schedule-container {
+            overflow-x: auto;
+            margin-top: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-lg);
+        }
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 12px;
+            min-width: 1000px;
+            table-layout: fixed;
+        }
+        .schedule-table th {
+            padding: 1rem;
+            text-align: center;
+            border: none;
+            background: #f8fafc;
+            border-radius: 16px;
+        }
+        .day-name {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 1rem;
+        }
+        .date-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .slot-cell {
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 16px;
+            height: 80px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            padding: 10px;
+        }
+        .slot-cell:hover {
+            border-color: var(--primary);
+            background: #fdfdff;
+            transform: translateY(-2px);
+        }
+        .slot-cell.selected {
+            background: var(--primary);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+        .cell-status {
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+        .row-label {
+            width: 140px;
+            padding-right: 1rem;
+            text-align: right;
+            border: none;
+        }
+        .slot-title {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 0.95rem;
+        }
+        .slot-time-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        .row-label-header {
+            width: 140px;
+            background: transparent !important;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .week-picker-container {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule</div>
+        <div style="display: flex; gap: 1.5rem; align-items: center;">
+            <div id="teacherInfo" class="glass-card" style="padding: 0.5rem 1.2rem; display: flex; align-items: center; gap: 0.8rem; border-radius: 50px;">
+                <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">T</div>
+                <span id="userName" style="font-weight: 600; color: #1e293b;">Teacher Name</span>
+            </div>
+            <button class="btn" style="padding: 0.6rem 1.2rem; background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 1200px;">
+        <div class="glass-card" style="padding: 3rem;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Register Availability</h1>
+                    <p style="color: var(--text-muted);">Click on a slot to toggle your availability for the week.</p>
+                </div>
+                <div class="week-picker-container">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Select Starting Monday</label>
+                        <input type="date" id="weekStart" onchange="loadWeeklyAvailability()" style="width: 220px;">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveAllAvailability()" style="margin-top: 1.6rem;">Save Changes</button>
+                </div>
+            </div>
+
+            <div id="mainAlert" class="alert" style="margin-top: 1rem;"></div>
+
+            <div class="schedule-container">
+                <table class="schedule-table">
+                    <thead>
+                        <tr id="tableHeader">
+                            <th style="background: transparent;"></th>
+                            <!-- Days will be injected here -->
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleBody">
+                        <!-- Slots will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('TEACHER')) window.location.href = 'index.html';
+        document.getElementById('userName').textContent = auth.getUser().fullName;
+
+        // Init: Set weekStart to current Monday
+        const today = new Date();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+        document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
+
+        let timeSlots = [];
+        let weeklyStates = {}; // key: "date_slotId", value: boolean
+
+        async function init() {
+            ui.showLoader();
+            try {
+                timeSlots = await api.get('/Teacher/timeslots');
+                renderTableStructure();
+                await loadWeeklyAvailability();
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function renderTableStructure() {
+            const header = document.getElementById('tableHeader');
+            const body = document.getElementById('scheduleBody');
+            
+            const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+            header.innerHTML = '<th class="row-label-header">Time Slots</th>' + 
+                days.map(d => `<th>
+                    <div class="day-name">${d}</div>
+                    <div class="date-sub" id="date-${d}">--/--</div>
+                </th>`).join('');
+
+            body.innerHTML = timeSlots.map(slot => `
+                <tr>
+                    <td class="row-label">
+                        <div class="slot-title">${slot.slotName}</div>
+                        <div class="slot-time-label">${slot.startTime.substring(0,5)} - ${slot.endTime.substring(0,5)}</div>
+                    </td>
+                    ${days.map(d => `<td class="slot-cell" data-day="${d}" data-slot="${slot.timeSlotId}" onclick="toggleCell(this)">
+                        <div class="cell-status">Select</div>
+                    </td>`).join('')}
+                </tr>
+            `).join('');
+        }
+
+        async function loadWeeklyAvailability() {
+            const startDateStr = document.getElementById('weekStart').value;
+            if (!startDateStr) return;
+            
+            // Snap to Monday logic
+            let chosenDate = new Date(startDateStr);
+            let day = chosenDate.getDay();
+            let diff = chosenDate.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+            let mondayDate = new Date(chosenDate.setDate(diff));
+            
+            // Update input to show the Monday
+            document.getElementById('weekStart').value = mondayDate.toISOString().split('T')[0];
+            
+            const user = auth.getUser();
+            const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+            const dateMap = {}; 
+            
+            ui.showLoader();
+            try {
+                // Clear existing UI states
+                document.querySelectorAll('.slot-cell').forEach(cell => {
+                    cell.classList.remove('selected');
+                    cell.querySelector('.cell-status').textContent = 'Select';
+                });
+
+                // Pre-calculate all dates for the week
+                for (let i = 0; i < days.length; i++) {
+                    const current = new Date(mondayDate);
+                    current.setDate(mondayDate.getDate() + i);
+                    const dateStr = current.toISOString().split('T')[0];
+                    dateMap[days[i]] = dateStr;
+                    
+                    const displayDate = current.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'});
+                    document.getElementById(`date-${days[i]}`).textContent = displayDate;
+                }
+
+                const promises = Object.values(dateMap).map(d => api.get(`/Teacher/availability?userId=${user.userId}&date=${d}`));
+                const results = await Promise.all(promises);
+
+                const dates = Object.values(dateMap);
+                results.forEach((dayData, index) => {
+                    dayData.forEach(item => {
+                        const cell = document.querySelector(`.slot-cell[data-day="${days[index]}"][data-slot="${item.timeSlotId}"]`);
+                        if (cell) {
+                            cell.classList.add('selected');
+                            cell.querySelector('.cell-status').textContent = 'RESERVED';
+                        }
+                    });
+                });
+
+                // Attach actual dates to cells for saving
+                document.querySelectorAll('.slot-cell').forEach(cell => {
+                    cell.dataset.fullDate = dateMap[cell.dataset.day];
+                });
+
+            } catch (error) {
+                console.error(error);
+                ui.showAlert('mainAlert', "Error loading schedule data.");
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function toggleCell(el) {
+            el.classList.toggle('selected');
+            el.querySelector('.cell-status').textContent = el.classList.contains('selected') ? 'RESERVED' : 'Select';
+        }
+
+        async function saveAllAvailability() {
+            ui.showLoader();
+            try {
+                const user = auth.getUser();
+                const cells = document.querySelectorAll('.slot-cell');
+                const dataByDate = {}; // date -> [slotIds]
+
+                cells.forEach(cell => {
+                    const date = cell.dataset.fullDate;
+                    if (!date) return;
+                    
+                    const slotId = parseInt(cell.dataset.slot);
+                    if (!dataByDate[date]) dataByDate[date] = [];
+                    if (cell.classList.contains('selected')) {
+                        dataByDate[date].push(slotId);
+                    }
+                });
+
+                // Send parallel requests for each date
+                const promises = Object.keys(dataByDate).map(date => {
+                    return api.post(`/Teacher/availability?userId=${user.userId}`, {
+                        date: date,
+                        timeSlotIds: dataByDate[date],
+                        note: "Weekly Update"
+                    });
+                });
+
+                await Promise.all(promises);
+                ui.showAlert('mainAlert', 'Weekly availability updated successfully!', 'success');
+                // Reload to confirm
+                await loadWeeklyAvailability();
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

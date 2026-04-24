@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - Project Groups</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            height: calc(100vh - 80px);
+            position: fixed;
+            padding: 2rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+        .main-admin {
+            margin-left: 280px;
+            padding: 3rem;
+        }
+        .group-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.02);
+            transition: transform 0.2s ease;
+        }
+        .group-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule <span>Admin</span></div>
+        <button class="btn" style="background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
+    </header>
+
+    <div class="sidebar">
+        <a href="admin_semester.html" class="nav-item">Semesters</a>
+        <a href="admin_group.html" class="nav-item active">Project Groups</a>
+        <a href="admin_scheduling.html" class="nav-item">Review Assignments</a>
+        <a href="#" class="nav-item">User Management</a>
+    </div>
+
+    <main class="main-admin">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Group Management</h1>
+                <p style="color: var(--text-muted);">Organize students into project groups for reviews.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showModal()">+ New Project Group</button>
+        </div>
+
+        <div id="mainAlert" class="alert"></div>
+
+        <div class="grid-layout" id="groupGrid">
+            <!-- Group cards will be here -->
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="groupModal" class="modal-overlay">
+        <div class="glass-card fade-in" style="width: 500px; padding: 2.5rem;">
+            <h2 style="margin-bottom: 1.5rem;">Create Project Group</h2>
+            <form id="groupForm">
+                <div class="input-group">
+                    <label>Select Semester</label>
+                    <select id="mSemester" required onchange="loadCourses(this.value)"></select>
+                </div>
+                <div class="input-group">
+                    <label>Select Course</label>
+                    <select id="mCourse" required></select>
+                </div>
+                <div class="input-group">
+                    <label>Group Code</label>
+                    <input type="text" id="gCode" placeholder="e.g. SE1601-G1" required>
+                </div>
+                <div class="input-group">
+                    <label>Group Name</label>
+                    <input type="text" id="gName" placeholder="e.g. Smart Home Project" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Create Group</button>
+                    <button type="button" class="btn" style="flex: 1; background: #f1f5f9;" onclick="hideModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('ADMIN')) window.location.href = 'index.html';
+
+        async function init() {
+            ui.showLoader();
+            try {
+                const semesters = await api.get('/Semesters');
+                document.getElementById('mSemester').innerHTML = semesters.map(s => `<option value="${s.semesterId}">${s.semesterName}</option>`).join('');
+                
+                if (semesters.length > 0) {
+                    await loadCourses(semesters[0].semesterId);
+                    await loadAllGroups();
+                }
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        async function loadCourses(semesterId) {
+            try {
+                // Fixed Path: api/project-courses/semester/{semesterId}
+                const courses = await api.get(`/project-courses/semester/${semesterId}`);
+                const select = document.getElementById('mCourse');
+                if (courses.length === 0) {
+                    select.innerHTML = '<option value="">No courses in this semester</option>';
+                } else {
+                    select.innerHTML = courses.map(c => `<option value="${c.projectCourseId}">${c.courseCode} - ${c.courseName}</option>`).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function loadAllGroups() {
+            try {
+                const groups = await api.get('/project-groups');
+                const grid = document.getElementById('groupGrid');
+                grid.innerHTML = groups.map(g => `
+                    <div class="group-card fade-in">
+                        <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 700;">${g.projectCourse?.courseCode || 'Course'}</div>
+                        <h3 style="margin: 0.5rem 0; font-size: 1.4rem;">${g.groupCode}</h3>
+                        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">${g.groupName}</p>
+                        <div style="display: flex; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                            <span style="font-size: 0.8rem; font-weight: 800;">ID: ${g.projectGroupId}</span>
+                            <span class="status-badge status-active">Active</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        function showModal() { document.getElementById('groupModal').style.display = 'flex'; }
+        function hideModal() { document.getElementById('groupModal').style.display = 'none'; }
+
+        document.getElementById('groupForm').onsubmit = async (e) => {
+            e.preventDefault();
+            ui.showLoader();
+            const data = {
+                projectCourseId: parseInt(document.getElementById('mCourse').value),
+                groupCode: document.getElementById('gCode').value,
+                groupName: document.getElementById('gName').value,
+                description: "Initial group creation"
+            };
+            try {
+                await api.post('/project-groups', data);
+                hideModal();
+                init();
+                ui.showAlert('mainAlert', 'Group created successfully!', 'success');
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>

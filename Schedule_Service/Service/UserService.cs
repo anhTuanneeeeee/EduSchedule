@@ -1,4 +1,4 @@
-﻿using Schedule_Repository.IRepository;
+using Schedule_Repository.IRepository;
 using Schedule_Service.IService;
 using Schedule_Repository.Models;
 using Schedule_Repository.Repository;
@@ -27,13 +27,13 @@ namespace Schedule_Service.Service
             var users = await _userRepository.GetAllAsync();
             return users.Select(MapToUserResponse).ToList();
         }
-        public async Task<UserResponseDto?> GetByIdAsync(int userId)
+        public async Task<UserResponseDto?> GetByIdAsync(long userId)
         {
             var user = await _userRepository.GetByIdWithRolesAsync(userId);
             return user == null ? null : MapToUserResponse(user);
         }
 
-        public async Task<List<RoleResponseDto>?> GetRolesByUserIdAsync(int userId)
+        public async Task<List<RoleResponseDto>?> GetRolesByUserIdAsync(long userId)
         {
             bool exists = await _userRepository.UserExistsAsync(userId);
             if (!exists)
@@ -54,7 +54,7 @@ namespace Schedule_Service.Service
             return users.Select(MapToUserResponse).ToList();
         }
 
-        public async Task<(bool Success, string Message)> UpdateAsync(int userId, UpdateUserRequestDto request)
+        public async Task<(bool Success, string Message)> UpdateAsync(long userId, UpdateUserRequestDto request)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
@@ -76,7 +76,7 @@ namespace Schedule_Service.Service
                 : (false, "Cập nhật user thất bại.");
         }
 
-        public async Task<(bool Success, string Message)> DeleteAsync(int userId)
+        public async Task<(bool Success, string Message)> DeleteAsync(long userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
@@ -89,7 +89,7 @@ namespace Schedule_Service.Service
                 : (false, "Xóa user thất bại.");
         }
 
-        public async Task<(bool Success, string Message)> AssignRoleAsync(int userId, int roleId)
+        public async Task<(bool Success, string Message)> AssignRoleAsync(long userId, int roleId)
         {
             bool userExists = await _userRepository.UserExistsAsync(userId);
             if (!userExists)
@@ -106,7 +106,7 @@ namespace Schedule_Service.Service
                 : (false, "User đã có role này hoặc gán role thất bại.");
         }
 
-        public async Task<(bool Success, string Message)> RemoveRoleAsync(int userId, int roleId)
+        public async Task<(bool Success, string Message)> RemoveRoleAsync(long userId, int roleId)
         {
             bool userExists = await _userRepository.UserExistsAsync(userId);
             if (!userExists)

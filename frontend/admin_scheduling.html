@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - Administrative Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            height: calc(100vh - 80px);
+            position: fixed;
+            padding: 2rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+            transform: translateX(5px);
+        }
+        .main-admin {
+            margin-left: 280px;
+            padding: 3rem;
+            min-height: 100vh;
+        }
+        .tab-nav {
+            display: flex;
+            background: #f1f5f9;
+            padding: 0.5rem;
+            border-radius: 16px;
+            width: fit-content;
+            margin-bottom: 2rem;
+        }
+        .tab-btn {
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            transition: all 0.2s ease;
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        
+        /* Scheduling Table Styles */
+        .schedule-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+        }
+        .schedule-row {
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+        }
+        .schedule-row:hover {
+            transform: scale(1.005);
+            box-shadow: var(--shadow-md);
+        }
+        .schedule-row td {
+            padding: 1.5rem;
+            border: none;
+        }
+        .schedule-row td:first-child { border-radius: 20px 0 0 20px; }
+        .schedule-row td:last-child { border-radius: 0 20px 20px 0; }
+
+        .teacher-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar-ui {
+            width: 40px; height: 40px;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule <span>Admin Control</span></div>
+        <button class="btn" style="background: #fee2e2; color: #ef4444; padding: 0.6rem 1.5rem;" onclick="auth.logout()">Logout</button>
+    </header>
+
+    <div class="sidebar">
+        <a href="admin_semester.html" class="nav-item">Semesters</a>
+        <a href="admin_group.html" class="nav-item">Project Groups</a>
+        <a href="admin_scheduling.html" class="nav-item active">Review Assignments</a>
+        <a href="#" class="nav-item">User Management</a>
+    </div>
+
+    <main class="main-admin">
+        <div style="margin-bottom: 2.5rem;">
+            <h1 style="font-size: 2.2rem; letter-spacing: -1px;">Review Scheduling</h1>
+            <p style="color: var(--text-muted);">Manage and orchestrate project review sessions.</p>
+        </div>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" id="tabAuto" onclick="switchTab('auto')">Auto Machine-Scheduling</button>
+            <button class="tab-btn" id="tabManual" onclick="switchTab('manual')">Manual Assignment</button>
+        </div>
+
+        <div id="mainAlert" class="alert" style="margin-bottom: 2rem;"></div>
+
+        <div class="glass-card" style="padding: 2.5rem; margin-bottom: 3rem;">
+            <!-- Setting Area -->
+            <div id="sectionAuto">
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Target Semester</label>
+                        <select id="semesterSelect" onchange="onSemesterChange()"></select>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Review Round</label>
+                        <input type="number" id="roundNumber" value="1">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Panel Size (Teachers)</label>
+                        <input type="number" id="teachersPer" value="2">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; align-items: flex-end;">
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>Start Date</label>
+                        <input type="date" id="fromDate">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 0;">
+                        <label>End Date</label>
+                        <input type="date" id="toDate">
+                    </div>
+                    <button class="btn btn-primary" onclick="runScheduling()" style="padding: 1.1rem; width: 100%; border-radius: 12px; font-weight: 800;">Execute Scheduling Algorithm</button>
+                </div>
+            </div>
+
+            <!-- Manual Selection Interface (Placeholder for next step) -->
+            <div id="sectionManual" style="display: none;">
+                <h3 style="margin-bottom: 1rem;">Direct Group Assignment</h3>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Choose a group to manually set the reviewer panel, time, and room.</p>
+                <div id="manualGroupList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <!-- Group cards for manual assignment -->
+                </div>
+            </div>
+        </div>
+
+        <div id="resultsContainer">
+            <h2 style="margin-bottom: 1.5rem; display: none;" id="resultTitle">Confirmed Assignments</h2>
+            <table class="schedule-table" id="resultsTable">
+                <tbody id="resultsList">
+                    <!-- Clean rows injected here -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Manual Assign Modal -->
+    <div id="assignModal" class="modal-overlay">
+        <div class="glass-card fade-in" style="width: 600px; padding: 2.5rem; background: white;">
+            <h2 id="modalGroupTitle">Assign Reviewers</h2>
+            <p id="modalGroupSub" style="color: var(--text-muted); margin-bottom: 1.5rem;">Pick a date, slot and available teachers.</p>
+            
+            <form id="manualAssignForm">
+                <input type="hidden" id="modalGroupId">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group">
+                        <label>Date</label>
+                        <input type="date" id="mDate" required onchange="loadAvailableTeachers()">
+                    </div>
+                    <div class="input-group">
+                        <label>Time Slot</label>
+                        <select id="mSlot" required onchange="loadAvailableTeachers()"></select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Assigned Teacher(s)</label>
+                    <select id="mTeachers" multiple style="height: 120px; border-radius: 12px; padding: 0.8rem;" required>
+                        <option value="">Select Date & Slot first...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Room / Location</label>
+                    <input type="text" id="mLocation" placeholder="e.g. BE-302" required>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1; border-radius: 12px;">Confirm Assignment</button>
+                    <button type="button" class="btn" style="background: #f1f5f9; flex: 1; border-radius: 12px;" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('ADMIN')) window.location.href = 'index.html';
+
+        let semestersData = [];
+        let timeSlotsData = [];
+
+        async function init() {
+            ui.showLoader();
+            try {
+                semestersData = await api.get('/semesters');
+                timeSlotsData = await api.get('/Teacher/timeslots');
+                
+                const select = document.getElementById('semesterSelect');
+                select.innerHTML = semestersData.map(s => `<option value="${s.semesterId}">${s.semesterName} (${s.semesterCode})</option>`).join('');
+                
+                if (semestersData.length > 0) {
+                    onSemesterChange();
+                }
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        async function loadManualGroups() {
+            const semId = document.getElementById('semesterSelect').value;
+            try {
+                // 1. Get all courses for this semester
+                const courses = await api.get(`/project-courses/semester/${semId}`);
+                const courseIds = courses.map(c => c.projectCourseId);
+                
+                // 2. Get all groups
+                const allGroups = await api.get('/project-groups');
+                
+                // 3. Filter groups that belong to these courses
+                const groups = allGroups.filter(g => courseIds.includes(g.projectCourseId));
+                
+                const list = document.getElementById('manualGroupList');
+                if (groups.length === 0) {
+                    list.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">No groups found in this semester. Make sure you created groups and assigned them to courses of this semester.</div>';
+                    return;
+                }
+                list.innerHTML = groups.map(g => `
+                    <div class="glass-card fade-in" style="padding: 1.5rem; border: 1px solid rgba(0,0,0,0.05); background: white;">
+                        <div style="font-size: 0.75rem; font-weight: 800; color: var(--primary); text-transform: uppercase;">${g.groupCode}</div>
+                        <div style="font-weight: 700; margin: 0.5rem 0; color: #0f172a;">${g.groupName}</div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.6rem; border-radius: 10px;" onclick="openAssignModal(${g.projectGroupId}, '${g.groupName}')">Assign Reviewer</button>
+                    </div>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        function openAssignModal(id, name) {
+            document.getElementById('modalGroupId').value = id;
+            document.getElementById('modalGroupTitle').textContent = `Assign Review for ${name}`;
+            
+            // Populate slots
+            const mSlot = document.getElementById('mSlot');
+            mSlot.innerHTML = timeSlotsData.map(t => `<option value="${t.timeSlotId}">${t.slotName}</option>`).join('');
+            
+            document.getElementById('assignModal').style.display = 'flex';
+        }
+
+        function closeModal() { document.getElementById('assignModal').style.display = 'none'; }
+
+        async function loadAvailableTeachers() {
+            const date = document.getElementById('mDate').value;
+            const slotId = document.getElementById('mSlot').value;
+            if (!date || !slotId) return;
+
+            try {
+                const teachers = await api.get(`/TeacherAvailabilities/available-on?date=${date}&slotId=${slotId}`);
+                const select = document.getElementById('mTeachers');
+                if (teachers.length === 0) {
+                    select.innerHTML = '<option value="">Found 0 available teachers</option>';
+                    ui.showAlert('mainAlert', 'No teachers are available for this slot.', 'error');
+                } else {
+                    select.innerHTML = teachers.map(t => `<option value="${t.teacherId}">${t.teacherCode} - ${t.fullName}</option>`).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('manualAssignForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const semesterId = document.getElementById('semesterSelect').value;
+            const teachers = Array.from(document.getElementById('mTeachers').selectedOptions).map(opt => parseInt(opt.value));
+            
+            const payload = {
+                projectGroupId: parseInt(document.getElementById('modalGroupId').value),
+                roundNumber: parseInt(document.getElementById('roundNumber').value),
+                assignedDate: document.getElementById('mDate').value,
+                timeSlotId: parseInt(document.getElementById('mSlot').value),
+                teacherIds: teachers,
+                location: document.getElementById('mLocation').value,
+                status: "CONFIRMED"
+            };
+
+            ui.showLoader();
+            try {
+                await api.post('/review-assignments/manual-schedule', payload);
+                ui.showAlert('mainAlert', 'Manually scheduled successfully!', 'success');
+                closeModal();
+                loadResults(semesterId);
+                loadManualGroups();
+            } catch (err) {
+                ui.showAlert('mainAlert', "Manual Error: " + err.message);
+            } finally { ui.hideLoader(); }
+        }
+
+        function switchTab(type) {
+            document.getElementById('sectionAuto').style.display = type === 'auto' ? 'block' : 'none';
+            document.getElementById('sectionManual').style.display = type === 'manual' ? 'block' : 'none';
+            document.getElementById('tabAuto').classList.toggle('active', type === 'auto');
+            document.getElementById('tabManual').classList.toggle('active', type === 'manual');
+            if (type === 'manual') loadManualGroups();
+        }
+
+        function onSemesterChange() {
+            const semId = document.getElementById('semesterSelect').value;
+            const sem = semestersData.find(s => s.semesterId == semId);
+            if (sem) {
+                document.getElementById('fromDate').value = sem.startDate.split('T')[0];
+                document.getElementById('toDate').value = sem.endDate.split('T')[0];
+                loadResults(semId);
+            }
+        }
+
+        async function loadResults(semesterId) {
+            try {
+                const results = await api.get(`/review-assignments/schedule-overview?semesterId=${semesterId}`);
+                renderResults(results);
+            } catch (e) { 
+                console.error(e);
+                renderResults([]);
+            }
+        }
+
+        async function runScheduling() {
+            const semesterId = parseInt(document.getElementById('semesterSelect').value);
+            const payload = {
+                semesterId: semesterId,
+                roundNumber: parseInt(document.getElementById('roundNumber').value),
+                fromDate: document.getElementById('fromDate').value,
+                toDate: document.getElementById('toDate').value,
+                teachersPerAssignment: parseInt(document.getElementById('teachersPer').value),
+                timeSlotIds: timeSlotsData.map(t => t.timeSlotId),
+                status: "DRAFT"
+            };
+            ui.showLoader();
+            try {
+                const resp = await api.post(`/review-assignments/auto-schedule`, payload);
+                const data = resp.data;
+                
+                if (data && data.failedCount > 0) {
+                    let msg = `Done: Scheduled ${data.scheduledCount} groups. <br/><b>Failed: ${data.failedCount} groups</b>. <br/>`;
+                    if (data.failedItems.length > 0) {
+                        msg += "Primary Reason: " + data.failedItems[0].reason;
+                    }
+                    ui.showAlert('mainAlert', msg, 'error');
+                } else {
+                    ui.showAlert('mainAlert', 'Success! All groups have been scheduled.', 'success');
+                }
+                
+                await loadResults(semesterId);
+            } catch (error) {
+                ui.showAlert('mainAlert', "Algorithm Error: " + error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function renderResults(results) {
+            const list = document.getElementById('resultsList');
+            const title = document.getElementById('resultTitle');
+            
+            if (!results || results.length === 0) {
+                list.innerHTML = '<tr><td style="text-align: center; padding: 5rem; color: var(--text-muted);">No records found. Adjust settings above and run scheduling.</td></tr>';
+                title.style.display = 'none';
+                return;
+            }
+
+            title.style.display = 'block';
+            list.innerHTML = results.map(r => {
+                const date = r.reviewDate ? new Date(r.reviewDate).toLocaleDateString('vi-VN') : 'TBD';
+                // Handle teacher list (some APIs return a single name, some return a semicolon-separated list or array)
+                const teachers = r.teacherNames ? r.teacherNames : (r.teacherName ? [r.teacherName] : []);
+                const teacherDisplay = teachers.length > 0 ? teachers.join(", ") : "<i>Not Assigned</i>";
+                
+                return `
+                <tr class="schedule-row">
+                    <td>
+                        <div class="teacher-info">
+                            <div class="avatar-ui">${(teachers[0] || 'R').charAt(0)}</div>
+                            <div>
+                                <div style="font-weight: 700; color: #0f172a;">${teacherDisplay}</div>
+                                <div style="font-size: 0.8rem; color: var(--primary); font-weight: 800;">GROUP: ${r.groupCode || r.groupName || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Date & Time</div>
+                        <div style="font-weight: 600;">${date}</div>
+                        <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">${r.slotName || 'Pending'} ${r.startTime ? '('+r.startTime.substring(0,5)+')' : ''}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Location / Room</div>
+                        <div style="font-weight: 700; color: #475569;">${r.roomName || r.location || 'TBD'}</div>
+                    </td>
+                    <td style="text-align: right;">
+                        <span class="status-badge status-active" style="text-transform: capitalize;">${r.status || 'Planned'}</span>
+                    </td>
+                </tr>
+                `;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

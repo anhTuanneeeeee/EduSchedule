@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Schedule_Service.DTOs;
 using Schedule_Service.IService;
@@ -85,6 +85,15 @@ namespace Schedule.Controllers
                 return BadRequest(new { message = result.Message });
 
             return Ok(new { message = result.Message });
+        }
+
+        [HttpGet("available-on")]
+        public async Task<IActionResult> GetAvailableTeachersOnSlot(
+            [FromQuery] DateOnly date,
+            [FromQuery] long slotId)
+        {
+            var result = await _teacherAvailabilityService.GetAvailableOnSlotAsync(date, slotId);
+            return Ok(result);
         }
 
         [HttpDelete("{id:long}")]

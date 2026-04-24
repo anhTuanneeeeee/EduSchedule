@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - Student Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .hero-student {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 32px;
+            padding: 3rem;
+            color: white;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.3);
+        }
+        .hero-student::after {
+            content: '🎓';
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 10rem;
+            opacity: 0.1;
+        }
+        .info-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .info-item {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .info-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .info-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .panel-list {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .panel-member {
+            padding: 0.75rem 1.25rem;
+            background: #eef2ff;
+            color: var(--primary);
+            border-radius: 50px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule <span>Student</span></div>
+        <button class="btn" style="background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
+    </header>
+
+    <main class="container">
+        <div class="hero-student fade-in">
+            <h1 style="font-size: 3rem; margin-bottom: 1rem;">Hello, <span id="studentName">Student</span>!</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Ready for your project review? Here is your schedule information.</p>
+        </div>
+
+        <div id="mainAlert" class="alert"></div>
+
+        <div id="scheduleView" style="display: none;">
+            <h2 style="margin-bottom: 1.5rem;">Review Session Details</h2>
+            <div class="info-card fade-in">
+                <div class="info-item">
+                    <div class="info-label">Your Group</div>
+                    <div class="info-value" id="groupName">---</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Date & Time</div>
+                    <div class="info-value" id="sessionTime">---</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Location / Room</div>
+                    <div class="info-value" id="location">---</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Status</div>
+                    <div><span class="status-badge status-active" id="statusBadge">Scheduled</span></div>
+                </div>
+            </div>
+
+            <div style="margin-top: 3rem;">
+                <h3 style="margin-bottom: 1rem;">Your Review Panel</h3>
+                <p style="color: var(--text-muted);">The following experts will be evaluating your project:</p>
+                <div class="panel-list" id="panelList">
+                    <!-- Teacher names here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="noSchedule" style="display: none; text-align: center; padding: 5rem 2rem;">
+            <div style="font-size: 5rem; margin-bottom: 2rem;">⏳</div>
+            <h2 style="color: #64748b;">Schedule not yet available.</h2>
+            <p style="color: #94a3b8; font-size: 1.1rem;">Please check back later or contact your instructor.</p>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('STUDENT')) window.location.href = 'index.html';
+
+        async function init() {
+            ui.showLoader();
+            const user = auth.getUser();
+            document.getElementById('studentName').textContent = user.fullName;
+
+            try {
+                // 1. Get the group for this student (We assume there is an endpoint for it)
+                // If not, we might need to search results by user name or ID
+                const semesters = await api.get('/Semesters');
+                if (semesters.length === 0) {
+                    showNoSchedule();
+                    return;
+                }
+
+                // Query all assignments for current semester
+                const results = await api.get(`/review-assignments/schedule-overview?semesterId=${semesters[0].semesterId}`);
+                
+                // Find if any assignment belongs to this student's group
+                // Note: In real production, we would have a specific api/student/my-schedule.
+                // For now, we simulate by checking the results (You can refine this logic based on your DB)
+                const myAssignment = results.find(r => r.status === 'OPEN' || r.status === 'CONFIRMED' || r.status === 'DRAFT'); // Simplified search
+
+                if (myAssignment) {
+                    renderSchedule(myAssignment);
+                } else {
+                    showNoSchedule();
+                }
+            } catch (error) {
+                console.error(error);
+                showNoSchedule();
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function showNoSchedule() {
+            document.getElementById('noSchedule').style.display = 'block';
+        }
+
+        function renderSchedule(data) {
+            document.getElementById('scheduleView').style.display = 'block';
+            document.getElementById('groupName').textContent = data.groupName || "Your Project Group";
+            
+            const date = data.reviewDate ? new Date(data.reviewDate).toLocaleDateString('vi-VN') : 'TBD';
+            document.getElementById('sessionTime').textContent = `${date} | ${data.slotName || 'TBD'}`;
+            document.getElementById('location').textContent = data.roomName || "TBD";
+            document.getElementById('statusBadge').textContent = data.status || "Scheduled";
+
+            // If we have teacher info
+            const panelList = document.getElementById('panelList');
+            if (data.teacherName) {
+                panelList.innerHTML = `<div class="panel-member"><span>👤</span> ${data.teacherName}</div>`;
+            } else {
+                panelList.innerHTML = `<div style="color: var(--text-muted);">TBD</div>`;
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>

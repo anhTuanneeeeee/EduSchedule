@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - My Final Schedule</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .final-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .final-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 6px; height: 100%;
+            background: var(--primary);
+        }
+        .final-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .date-badge {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+        .day-name {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .slot-pill {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border-radius: 10px;
+            font-weight: 700;
+            margin-top: 1rem;
+        }
+        .room-info {
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #475569;
+        }
+        .room-icon {
+            width: 32px;
+            height: 32px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule</div>
+        <div style="display: flex; gap: 2rem; align-items: center;">
+            <nav style="display: flex; gap: 1.5rem;">
+                <a href="teacher_availability.html" style="text-decoration: none; color: var(--text-muted); font-weight: 600;">Register Availability</a>
+                <a href="teacher_schedule.html" style="text-decoration: none; color: var(--primary); font-weight: 800; border-bottom: 2px solid var(--primary);">My Schedule</a>
+            </nav>
+            <button class="btn" style="padding: 0.6rem 1.2rem; background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div style="margin-bottom: 3rem;">
+            <h1 style="font-size: 2.5rem; letter-spacing: -1px;">Confirmed Review Schedule</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Below is your final assigned schedule. Please check the rooms and times carefully.</p>
+        </div>
+
+        <div id="mainAlert" class="alert"></div>
+
+        <div id="scheduleContainer" class="schedule-grid">
+            <!-- Cards will be injected here -->
+        </div>
+
+        <div id="emptyState" style="display: none; text-align: center; padding: 5rem 2rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📅</div>
+            <h3 style="color: #64748b;">No schedule assigned yet.</h3>
+            <p style="color: #94a3b8;">Admin hasn't released the final schedule or you haven't been assigned to any slots.</p>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('TEACHER')) window.location.href = 'index.html';
+
+        async function init() {
+            ui.showLoader();
+            try {
+                const user = auth.getUser();
+                // We use a generic get results and filter by teacher on frontend OR if the API exists for teacher specifically
+                // Looking at SchedulingController, we have GetResults(semesterId)
+                // Let's get results for the active semester
+                const semesters = await api.get('/Semesters');
+                if (semesters.length === 0) {
+                    showEmpty();
+                    return;
+                }
+
+                // Get result for the first active semester found
+                const results = await api.get(`/Scheduling/results?semesterId=${semesters[0].semesterId}`);
+                const myResults = results.filter(r => r.userId == user.userId);
+
+                if (myResults.length === 0) {
+                    showEmpty();
+                } else {
+                    renderMySchedule(myResults);
+                }
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function showEmpty() {
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        function renderMySchedule(items) {
+            const container = document.getElementById('scheduleContainer');
+            container.innerHTML = items.map(item => {
+                const dateObj = new Date(item.date);
+                const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+                const dateStr = dateObj.toLocaleDateString('vi-VN');
+
+                return `
+                    <div class="final-card fade-in">
+                        <div class="day-name">${dayName}</div>
+                        <div class="date-badge">${dateStr}</div>
+                        <div class="slot-pill">${item.slotName}</div>
+                        <div class="room-info">
+                            <div class="room-icon">🪑</div>
+                            <span>Room: <strong style="color: #0f172a;">${item.roomName}</strong></span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        init();
+    </script>
+</body>
+</html>

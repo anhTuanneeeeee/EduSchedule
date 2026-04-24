@@ -1,4 +1,4 @@
-﻿using Schedule_Repository.IRepository;
+using Schedule_Repository.IRepository;
 using Schedule_Repository.Models;
 using Schedule_Service.DTOs;
 using Schedule_Service.IService;
@@ -168,6 +168,22 @@ namespace Schedule_Service.Service
             return result
                 ? (true, "Xóa lịch rảnh thành công.")
                 : (false, "Xóa lịch rảnh thất bại.");
+        }
+
+        public async Task<List<TeacherDetailDto>> GetAvailableOnSlotAsync(DateOnly date, long slotId)
+        {
+            var availabilities = await _teacherAvailabilityRepository.GetAvailableInRangeAsync(
+                date, date, new List<long> { slotId });
+
+            return availabilities.Select(a => new TeacherDetailDto
+            {
+                TeacherId = a.TeacherId,
+                TeacherCode = a.Teacher.TeacherCode,
+                FullName = a.Teacher.User.FullName,
+                Email = a.Teacher.User.Email,
+                Phone = a.Teacher.User.Phone,
+                Department = a.Teacher.Department
+            }).ToList();
         }
 
         private static string? NormalizeAvailabilityStatus(string? status)

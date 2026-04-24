@@ -13,12 +13,12 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetByUsernameAsync(string email)
+    public async Task<User?> GetByUsernameAsync(string username)
     {
         return await _context.Users
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
-            .FirstOrDefaultAsync(u => u.Email == email);
+            .FirstOrDefaultAsync(u => u.Username == username);
     }
 
     public async Task<User?> GetByEmailAsync(string email)
@@ -70,13 +70,13 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<User?> GetByIdAsync(int userId)
+    public async Task<User?> GetByIdAsync(long userId)
     {
         return await _context.Users
             .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
-    public async Task<User?> GetByIdWithRolesAsync(int userId)
+    public async Task<User?> GetByIdWithRolesAsync(long userId)
     {
         return await _context.Users
             .Include(u => u.UserRoles)
@@ -84,7 +84,7 @@ public class UserRepository : IUserRepository
             .FirstOrDefaultAsync(u => u.UserId == userId);
     }
 
-    public async Task<List<Role>> GetRolesByUserIdAsync(int userId)
+    public async Task<List<Role>> GetRolesByUserIdAsync(long userId)
     {
         return await _context.UserRoles
             .Where(ur => ur.UserId == userId)
@@ -103,12 +103,12 @@ public class UserRepository : IUserRepository
             .ToListAsync();
     }
 
-    public async Task<bool> UserExistsAsync(int userId)
+    public async Task<bool> UserExistsAsync(long userId)
     {
         return await _context.Users.AnyAsync(u => u.UserId == userId);
     }
 
-    public async Task<bool> IsEmailExistsAsync(string email, int? excludeUserId = null)
+    public async Task<bool> IsEmailExistsAsync(string email, long? excludeUserId = null)
     {
         return await _context.Users.AnyAsync(u =>
             u.Email == email &&
@@ -127,7 +127,7 @@ public class UserRepository : IUserRepository
         return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> AssignRoleAsync(int userId, int roleId)
+    public async Task<bool> AssignRoleAsync(long userId, int roleId)
     {
         bool existed = await _context.UserRoles
             .AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
@@ -145,7 +145,7 @@ public class UserRepository : IUserRepository
         return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> RemoveRoleAsync(int userId, int roleId)
+    public async Task<bool> RemoveRoleAsync(long userId, int roleId)
     {
         var userRole = await _context.UserRoles
             .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId);

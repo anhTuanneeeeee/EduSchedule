@@ -1,4 +1,4 @@
-﻿using Schedule_Service.DTOs;
+using Schedule_Service.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,5 +30,7 @@ namespace Schedule_Service.IService
         Task<(bool Success, string Message)> DeleteAsync(
             long userId,
             long teacherAvailabilityId);
+
+        Task<List<TeacherDetailDto>> GetAvailableOnSlotAsync(DateOnly date, long slotId);
     }
 }

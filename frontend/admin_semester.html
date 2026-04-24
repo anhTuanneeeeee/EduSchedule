@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSchedule - Manage Semesters</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            height: calc(100vh - 80px);
+            position: fixed;
+            padding: 2rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .nav-item:hover, .nav-item.active {
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+    background-color: #0f172a;
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+        .main-admin {
+            margin-left: 280px;
+            padding: 3rem;
+        }
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-active { background: #dcfce7; color: #166534; }
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+        .data-table tr {
+            background: white;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+        .data-table tr:hover { transform: scale(1.01); }
+        .data-table td, .data-table th {
+            padding: 1.25rem;
+        }
+        .data-table th {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .data-table td:first-child { border-radius: 16px 0 0 16px; }
+        .data-table td:last-child { border-radius: 0 16px 16px 0; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div id="loader"><div class="spinner"></div></div>
+
+    <header>
+        <div class="logo">EduSchedule <span>Admin</span></div>
+        <button class="btn" style="background: #fee2e2; color: #ef4444;" onclick="auth.logout()">Logout</button>
+    </header>
+
+    <div class="sidebar">
+        <a href="admin_semester.html" class="nav-item active">Semesters</a>
+        <a href="admin_group.html" class="nav-item">Project Groups</a>
+        <a href="admin_scheduling.html" class="nav-item">Review Assignments</a>
+        <a href="#" class="nav-item">Users & Roles</a>
+    </div>
+
+    <main class="main-admin">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+            <div>
+                <h1 style="font-size: 2rem;">Semester Management</h1>
+                <p style="color: var(--text-muted);">Create and manage academic periods.</p>
+            </div>
+            <button class="btn btn-primary" onclick="showModal()">+ New Semester</button>
+        </div>
+
+        <div id="mainAlert" class="alert"></div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Year</th>
+                    <th>Term</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="semesterList">
+                <!-- Data will be injected here -->
+            </tbody>
+        </table>
+    </main>
+
+    <!-- Modal -->
+    <div id="semesterModal" class="modal-overlay">
+        <div class="glass-card fade-in" style="width: 500px; padding: 2.5rem;">
+            <h2 style="margin-bottom: 1.5rem;">Create New Semester</h2>
+            <form id="semesterForm">
+                <div class="input-group">
+                    <label>Semester Code</label>
+                    <input type="text" id="semCode" placeholder="e.g. SUMMER2026" required>
+                </div>
+                <div class="input-group">
+                    <label>Semester Name</label>
+                    <input type="text" id="semName" placeholder="e.g. Summer 2026" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group">
+                        <label>Academic Year</label>
+                        <input type="number" id="semYear" value="2026" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Term Number</label>
+                        <input type="number" id="semTerm" value="1" required>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group">
+                        <label>Start Date</label>
+                        <input type="date" id="startDate" required>
+                    </div>
+                    <div class="input-group">
+                        <label>End Date</label>
+                        <input type="date" id="endDate" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Semester</button>
+                    <button type="button" class="btn" style="flex: 1; background: #f1f5f9;" onclick="hideModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!auth.hasRole('ADMIN')) window.location.href = 'index.html';
+
+        async function init() {
+            ui.showLoader();
+            try {
+                const semesters = await api.get('/Semesters');
+                const list = document.getElementById('semesterList');
+                list.innerHTML = semesters.map(s => `
+                    <tr>
+                        <td style="font-weight: 700;">${s.semesterCode}</td>
+                        <td>${s.semesterName}</td>
+                        <td>${s.academicYear}</td>
+                        <td>Term ${s.termNumber}</td>
+                        <td style="font-size: 0.85rem; color: var(--text-muted);">
+                            ${new Date(s.startDate).toLocaleDateString()} - ${new Date(s.endDate).toLocaleDateString()}
+                        </td>
+                        <td><span class="status-badge status-active">Active</span></td>
+                        <td>
+                            <button class="btn" style="padding: 0.4rem; background: #eff6ff; color: #3b82f6;">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        }
+
+        function showModal() { document.getElementById('semesterModal').style.display = 'flex'; }
+        function hideModal() { document.getElementById('semesterModal').style.display = 'none'; }
+
+        document.getElementById('semesterForm').onsubmit = async (e) => {
+            e.preventDefault();
+            ui.showLoader();
+            const data = {
+                semesterCode: document.getElementById('semCode').value,
+                semesterName: document.getElementById('semName').value,
+                academicYear: parseInt(document.getElementById('semYear').value),
+                termNumber: parseInt(document.getElementById('semTerm').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value
+            };
+            try {
+                await api.post('/Semesters', data);
+                hideModal();
+                init();
+                ui.showAlert('mainAlert', 'Semester created successfully!', 'success');
+            } catch (error) {
+                ui.showAlert('mainAlert', error.message);
+            } finally {
+                ui.hideLoader();
+            }
+        };
+
+        init();
+    </script>
+</body>
+</html>

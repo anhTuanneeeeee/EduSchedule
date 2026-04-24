@@ -48,6 +48,12 @@ public class AuthService : IAuthService
 
     public async Task<bool> RegisterAsync(RegisterRequest request)
     {
+        // Security: Prevent direct registration as ADMIN
+        if (request.RoleCode.ToUpper() == "ADMIN")
+        {
+            return false;
+        }
+
         // Check if user exists
         var existingUser = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingUser != null) return false;
