@@ -9,10 +9,6 @@ namespace Schedule_Service.Service
 {
     public interface IReviewAssignmentQueryService
     {
-        Task<(bool Success, string Message, List<ScheduleOverviewDateDto>? Data)> GetScheduleOverviewAsync(
-            long semesterId,
-            DateOnly? fromDate = null,
-            DateOnly? toDate = null,
-            string? status = null);
+        Task<(bool Success, string Message, List<ScheduleOverviewDateDto>? Data)> GetScheduleOverviewAsync(long semesterId);
     }
 }

@@ -17,13 +17,9 @@ namespace Schedule_Repository.Repository
             _context = context;
         }
 
-        public async Task<List<ReviewAssignment>> GetScheduleOverviewAsync(
-            long semesterId,
-            DateOnly? fromDate = null,
-            DateOnly? toDate = null,
-            string? status = null)
+        public async Task<List<ReviewAssignment>> GetScheduleOverviewAsync(long semesterId)
         {
-            var query = _context.ReviewAssignments
+            return await _context.ReviewAssignments
                 .Include(x => x.TimeSlot)
                 .Include(x => x.ReviewAssignmentTeachers)
                     .ThenInclude(x => x.Teacher)
@@ -33,21 +29,7 @@ namespace Schedule_Repository.Repository
                         .ThenInclude(x => x.ProjectCourse)
                             .ThenInclude(x => x.Semester)
                 .Where(x => x.ReviewRound.ProjectGroup.ProjectCourse.SemesterId == semesterId)
-                .AsNoTracking();
-
-            if (fromDate.HasValue)
-                query = query.Where(x => x.AssignedDate >= fromDate.Value);
-
-            if (toDate.HasValue)
-                query = query.Where(x => x.AssignedDate <= toDate.Value);
-
-            if (!string.IsNullOrWhiteSpace(status))
-            {
-                var normalizedStatus = status.Trim().ToUpperInvariant();
-                query = query.Where(x => x.Status.ToUpper() == normalizedStatus);
-            }
-
-            return await query
+                .AsNoTracking()
                 .OrderBy(x => x.AssignedDate)
                 .ThenBy(x => x.TimeSlot.SlotNumber)
                 .ThenBy(x => x.ReviewRound.ProjectGroup.GroupCode)

@@ -18,17 +18,9 @@ namespace Schedule.Controllers
         }
 
         [HttpGet("schedule-overview")]
-        public async Task<IActionResult> GetScheduleOverview(
-            [FromQuery] long semesterId,
-            [FromQuery] DateOnly? fromDate,
-            [FromQuery] DateOnly? toDate,
-            [FromQuery] string? status)
+        public async Task<IActionResult> GetScheduleOverview([FromQuery] long semesterId)
         {
-            var result = await _reviewAssignmentQueryService.GetScheduleOverviewAsync(
-                semesterId,
-                fromDate,
-                toDate,
-                status);
+            var result = await _reviewAssignmentQueryService.GetScheduleOverviewAsync(semesterId);
 
             if (!result.Success)
                 return BadRequest(new { message = result.Message });

@@ -9,10 +9,6 @@ namespace Schedule_Repository.Repository
 {
     public interface IReviewAssignmentQueryRepository
     {
-        Task<List<ReviewAssignment>> GetScheduleOverviewAsync(
-            long semesterId,
-            DateOnly? fromDate = null,
-            DateOnly? toDate = null,
-            string? status = null);
+        Task<List<ReviewAssignment>> GetScheduleOverviewAsync(long semesterId);
     }
 }
