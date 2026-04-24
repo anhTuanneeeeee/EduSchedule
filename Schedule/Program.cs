@@ -102,6 +102,14 @@ builder.Services.AddScoped<IReviewAssignmentTeacherRepository, ReviewAssignmentT
 builder.Services.AddScoped<IReviewAssignmentQueryRepository, ReviewAssignmentQueryRepository>();
 builder.Services.AddScoped<IReviewAssignmentQueryService, ReviewAssignmentQueryService>();
 builder.Services.AddScoped<IReviewSchedulingService, ReviewSchedulingService>();
+builder.Services.AddScoped<IProjectGroupAutoScheduleRepository, ProjectGroupAutoScheduleRepository>();
+builder.Services.AddScoped<IReviewRoundAutoScheduleRepository, ReviewRoundAutoScheduleRepository>();
+builder.Services.AddScoped<ITeacherAutoScheduleRepository, TeacherAutoScheduleRepository>();
+builder.Services.AddScoped<ITeacherAvailabilityAutoScheduleRepository, TeacherAvailabilityAutoScheduleRepository>();
+builder.Services.AddScoped<ITimeSlotAutoScheduleRepository, TimeSlotAutoScheduleRepository>();
+builder.Services.AddScoped<IReviewAssignmentAutoScheduleRepository, ReviewAssignmentAutoScheduleRepository>();
+builder.Services.AddScoped<IReviewAssignmentTeacherAutoScheduleRepository, ReviewAssignmentTeacherAutoScheduleRepository>();
+builder.Services.AddScoped<IReviewAutoSchedulingService, ReviewAutoSchedulingService>();
 
 builder.Services.AddCors(options =>
 {
