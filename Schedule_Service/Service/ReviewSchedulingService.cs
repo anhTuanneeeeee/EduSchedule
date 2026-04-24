@@ -2,16 +2,12 @@
 using Schedule_Repository.Models;
 using Schedule_Repository.Repository;
 using Schedule_Service.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Schedule_Service.Service
 {
     public class ReviewSchedulingService : IReviewSchedulingService
     {
+        private readonly IProjectGroupRepository _projectGroupRepository;
         private readonly IReviewRoundRepository _reviewRoundRepository;
         private readonly ITeacherRepository _teacherRepository;
         private readonly ITeacherAvailabilityRepository _teacherAvailabilityRepository;
@@ -20,6 +16,7 @@ namespace Schedule_Service.Service
         private readonly IReviewAssignmentTeacherRepository _reviewAssignmentTeacherRepository;
 
         public ReviewSchedulingService(
+            IProjectGroupRepository projectGroupRepository,
             IReviewRoundRepository reviewRoundRepository,
             ITeacherRepository teacherRepository,
             ITeacherAvailabilityRepository teacherAvailabilityRepository,
@@ -27,6 +24,7 @@ namespace Schedule_Service.Service
             IReviewAssignmentRepository reviewAssignmentRepository,
             IReviewAssignmentTeacherRepository reviewAssignmentTeacherRepository)
         {
+            _projectGroupRepository = projectGroupRepository;
             _reviewRoundRepository = reviewRoundRepository;
             _teacherRepository = teacherRepository;
             _teacherAvailabilityRepository = teacherAvailabilityRepository;
@@ -42,6 +40,9 @@ namespace Schedule_Service.Service
             if (request.SemesterId <= 0)
                 return (false, "SemesterId không hợp lệ.", null);
 
+            if (request.RoundNumber <= 0)
+                return (false, "RoundNumber phải lớn hơn 0.", null);
+
             if (request.FromDate > request.ToDate)
                 return (false, "FromDate phải nhỏ hơn hoặc bằng ToDate.", null);
 
@@ -56,17 +57,21 @@ namespace Schedule_Service.Service
             if (!timeSlots.Any())
                 return (false, "Không có TimeSlot hợp lệ để xếp lịch.", null);
 
-            var reviewRounds = await _reviewRoundRepository.GetUnscheduledBySemesterAsync(request.SemesterId);
-            var teachers = await _teacherRepository.GetAvailableForReviewAsync();
+            var groups = await _projectGroupRepository.GetBySemesterAsync(request.SemesterId);
 
             var result = new AutoScheduleResultDto
             {
-                TotalReviewRounds = reviewRounds.Count
+                TotalReviewRounds = groups.Count
             };
 
-            if (!reviewRounds.Any())
-                return (true, "Không có ReviewRound nào cần xếp lịch.", result);
+            if (!groups.Any())
+                return (true, "Không có nhóm nào trong học kỳ này để xếp lịch.", result);
 
+            var semester = groups.First().ProjectCourse.Semester;
+            if (request.FromDate < semester.StartDate || request.ToDate > semester.EndDate)
+                return (false, "Khoảng ngày xếp lịch phải nằm trong thời gian của học kỳ.", null);
+
+            var teachers = await _teacherRepository.GetAvailableForReviewAsync();
             if (!teachers.Any())
                 return (false, "Không có giảng viên nào sẵn sàng tham gia chấm.", null);
 
@@ -75,9 +80,9 @@ namespace Schedule_Service.Service
                 request.ToDate,
                 timeSlots.Select(x => x.TimeSlotId).ToList());
 
-            var availabilityMap = allAvailabilities
-                .GroupBy(x => BuildSlotKey(x.TeacherId, x.AvailableDate, x.TimeSlotId))
-                .ToDictionary(x => x.Key, x => true);
+            var availabilitySet = allAvailabilities
+                .Select(x => BuildSlotKey(x.TeacherId, x.AvailableDate, x.TimeSlotId))
+                .ToHashSet();
 
             var existingAssignments = await _reviewAssignmentTeacherRepository.GetBySemesterAsync(request.SemesterId);
 
@@ -94,10 +99,27 @@ namespace Schedule_Service.Service
                 .ToDictionary(g => g.Key, g => g.Count());
 
             var allDates = GetDates(request.FromDate, request.ToDate);
+            var roundName = string.IsNullOrWhiteSpace(request.RoundName)
+                ? $"Round {request.RoundNumber}"
+                : request.RoundName.Trim();
 
-            foreach (var round in reviewRounds)
+            foreach (var group in groups)
             {
-                var supervisorIds = round.ProjectGroup.ProjectSupervisors
+                var reviewRound = await GetOrCreateReviewRoundAsync(group, request.RoundNumber, roundName);
+
+                if (reviewRound.ReviewAssignment != null)
+                {
+                    result.FailedItems.Add(new AutoScheduleFailedItemDto
+                    {
+                        ReviewRoundId = reviewRound.ReviewRoundId,
+                        GroupCode = group.GroupCode,
+                        GroupName = group.GroupName,
+                        Reason = $"Nhóm này đã có lịch chấm cho Round {request.RoundNumber}."
+                    });
+                    continue;
+                }
+
+                var supervisorIds = group.ProjectSupervisors
                     .Select(x => x.TeacherId)
                     .ToHashSet();
 
@@ -110,7 +132,7 @@ namespace Schedule_Service.Service
                         var candidateTeachers = teachers
                             .Where(t =>
                                 !supervisorIds.Contains(t.TeacherId) &&
-                                availabilityMap.ContainsKey(BuildSlotKey(t.TeacherId, date, slot.TimeSlotId)) &&
+                                availabilitySet.Contains(BuildSlotKey(t.TeacherId, date, slot.TimeSlotId)) &&
                                 !sameSlotAssignedSet.Contains(BuildSlotKey(t.TeacherId, date, slot.TimeSlotId)) &&
                                 dayCountMap.GetValueOrDefault(BuildDayKey(t.TeacherId, date), 0) < t.MaxAssignmentsPerDay)
                             .OrderBy(t => totalLoadMap.GetValueOrDefault(t.TeacherId, 0))
@@ -124,7 +146,7 @@ namespace Schedule_Service.Service
 
                         var assignment = new ReviewAssignment
                         {
-                            ReviewRoundId = round.ReviewRoundId,
+                            ReviewRoundId = reviewRound.ReviewRoundId,
                             AssignedByUserId = assignedByUserId,
                             AssignedDate = date,
                             TimeSlotId = slot.TimeSlotId,
@@ -149,16 +171,15 @@ namespace Schedule_Service.Service
 
                             var dayKey = BuildDayKey(teacher.TeacherId, date);
                             dayCountMap[dayKey] = dayCountMap.GetValueOrDefault(dayKey, 0) + 1;
-
                             totalLoadMap[teacher.TeacherId] = totalLoadMap.GetValueOrDefault(teacher.TeacherId, 0) + 1;
                         }
 
                         result.ScheduledItems.Add(new AutoScheduledItemDto
                         {
                             ReviewAssignmentId = created.ReviewAssignmentId,
-                            ReviewRoundId = round.ReviewRoundId,
-                            GroupCode = round.ProjectGroup.GroupCode,
-                            GroupName = round.ProjectGroup.GroupName,
+                            ReviewRoundId = reviewRound.ReviewRoundId,
+                            GroupCode = group.GroupCode,
+                            GroupName = group.GroupName,
                             AssignedDate = date,
                             TimeSlotId = slot.TimeSlotId,
                             SlotName = slot.SlotName,
@@ -177,9 +198,9 @@ namespace Schedule_Service.Service
                 {
                     result.FailedItems.Add(new AutoScheduleFailedItemDto
                     {
-                        ReviewRoundId = round.ReviewRoundId,
-                        GroupCode = round.ProjectGroup.GroupCode,
-                        GroupName = round.ProjectGroup.GroupName,
+                        ReviewRoundId = reviewRound.ReviewRoundId,
+                        GroupCode = group.GroupCode,
+                        GroupName = group.GroupName,
                         Reason = "Không tìm được ngày/slot có đủ giảng viên hợp lệ."
                     });
                 }
@@ -195,8 +216,11 @@ namespace Schedule_Service.Service
             long assignedByUserId,
             ManualScheduleReviewAssignmentRequestDto request)
         {
-            if (request.ReviewRoundId <= 0)
-                return (false, "ReviewRoundId không hợp lệ.", null);
+            if (request.ProjectGroupId <= 0)
+                return (false, "ProjectGroupId không hợp lệ.", null);
+
+            if (request.RoundNumber <= 0)
+                return (false, "RoundNumber phải lớn hơn 0.", null);
 
             if (request.TimeSlotId <= 0)
                 return (false, "TimeSlotId không hợp lệ.", null);
@@ -213,20 +237,26 @@ namespace Schedule_Service.Service
             if (normalizedStatus == null)
                 return (false, "Status chỉ chấp nhận DRAFT, OPEN hoặc CONFIRMED.", null);
 
-            var reviewRound = await _reviewRoundRepository.GetByIdWithDetailsAsync(request.ReviewRoundId);
-            if (reviewRound == null)
-                return (false, "Không tìm thấy ReviewRound.", null);
+            var projectGroup = await _projectGroupRepository.GetByIdWithDetailsAsync(request.ProjectGroupId);
+            if (projectGroup == null)
+                return (false, "Không tìm thấy ProjectGroup.", null);
 
-            if (reviewRound.ReviewAssignment != null)
-                return (false, "ReviewRound này đã được xếp lịch rồi.", null);
+            var semester = projectGroup.ProjectCourse.Semester;
+            if (request.AssignedDate < semester.StartDate || request.AssignedDate > semester.EndDate)
+                return (false, "AssignedDate phải nằm trong thời gian của học kỳ.", null);
 
             var timeSlot = await _timeSlotRepository.GetByIdAsync(request.TimeSlotId);
             if (timeSlot == null || !timeSlot.IsActive)
                 return (false, "TimeSlot không tồn tại hoặc đang bị khóa.", null);
 
-            var semester = reviewRound.ProjectGroup.ProjectCourse.Semester;
-            if (request.AssignedDate < semester.StartDate || request.AssignedDate > semester.EndDate)
-                return (false, "AssignedDate phải nằm trong thời gian của học kỳ.", null);
+            var roundName = string.IsNullOrWhiteSpace(request.RoundName)
+                ? $"Round {request.RoundNumber}"
+                : request.RoundName.Trim();
+
+            var reviewRound = await GetOrCreateReviewRoundAsync(projectGroup, request.RoundNumber, roundName);
+
+            if (reviewRound.ReviewAssignment != null)
+                return (false, $"Nhóm này đã có lịch chấm cho Round {request.RoundNumber}.", null);
 
             var teachers = await _teacherRepository.GetByIdsAsync(distinctTeacherIds);
             if (teachers.Count != distinctTeacherIds.Count)
@@ -239,7 +269,7 @@ namespace Schedule_Service.Service
                 .Select(x => x.TeacherId)
                 .ToHashSet();
 
-            var supervisorIds = reviewRound.ProjectGroup.ProjectSupervisors
+            var supervisorIds = projectGroup.ProjectSupervisors
                 .Select(x => x.TeacherId)
                 .ToHashSet();
 
@@ -272,7 +302,7 @@ namespace Schedule_Service.Service
 
             var assignment = new ReviewAssignment
             {
-                ReviewRoundId = request.ReviewRoundId,
+                ReviewRoundId = reviewRound.ReviewRoundId,
                 AssignedByUserId = assignedByUserId,
                 AssignedDate = request.AssignedDate,
                 TimeSlotId = request.TimeSlotId,
@@ -295,8 +325,8 @@ namespace Schedule_Service.Service
             {
                 ReviewAssignmentId = created.ReviewAssignmentId,
                 ReviewRoundId = reviewRound.ReviewRoundId,
-                GroupCode = reviewRound.ProjectGroup.GroupCode,
-                GroupName = reviewRound.ProjectGroup.GroupName,
+                GroupCode = projectGroup.GroupCode,
+                GroupName = projectGroup.GroupName,
                 AssignedDate = created.AssignedDate,
                 TimeSlotId = created.TimeSlotId,
                 SlotName = timeSlot.SlotName,
@@ -306,6 +336,26 @@ namespace Schedule_Service.Service
             };
 
             return (true, "Xếp lịch thủ công thành công.", response);
+        }
+
+        private async Task<ReviewRound> GetOrCreateReviewRoundAsync(
+            ProjectGroup projectGroup,
+            int roundNumber,
+            string roundName)
+        {
+            var existingRound = await _reviewRoundRepository
+                .GetByProjectGroupAndRoundNumberAsync(projectGroup.ProjectGroupId, roundNumber);
+
+            if (existingRound != null)
+                return existingRound;
+
+            return await _reviewRoundRepository.CreateAsync(new ReviewRound
+            {
+                ProjectGroupId = projectGroup.ProjectGroupId,
+                RoundNumber = roundNumber,
+                RoundName = roundName,
+                Status = "PENDING"
+            });
         }
 
         private static List<DateOnly> GetDates(DateOnly fromDate, DateOnly toDate)

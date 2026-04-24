@@ -76,5 +76,29 @@ namespace Schedule_Repository.Repository
             _context.ProjectGroups.Remove(projectGroup);
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<ProjectGroup?> GetByIdWithDetailsAsync(long projectGroupId)
+        {
+            return await _context.ProjectGroups
+                .Include(x => x.ProjectCourse)
+                    .ThenInclude(x => x.Semester)
+                .Include(x => x.ProjectSupervisors)
+                .Include(x => x.ReviewRounds)
+                    .ThenInclude(x => x.ReviewAssignment)
+                .FirstOrDefaultAsync(x => x.ProjectGroupId == projectGroupId);
+        }
+
+        public async Task<List<ProjectGroup>> GetBySemesterAsync(long semesterId)
+        {
+            return await _context.ProjectGroups
+                .Include(x => x.ProjectCourse)
+                    .ThenInclude(x => x.Semester)
+                .Include(x => x.ProjectSupervisors)
+                .Include(x => x.ReviewRounds)
+                    .ThenInclude(x => x.ReviewAssignment)
+                .Where(x => x.ProjectCourse.SemesterId == semesterId)
+                .AsNoTracking()
+                .OrderBy(x => x.GroupCode)
+                .ToListAsync();
+        }
     }
 }

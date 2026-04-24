@@ -46,5 +46,25 @@ namespace Schedule_Repository.Repository
                 .Include(x => x.ReviewAssignment)
                 .FirstOrDefaultAsync(x => x.ReviewRoundId == reviewRoundId);
         }
+        public async Task<ReviewRound?> GetByProjectGroupAndRoundNumberAsync(long projectGroupId, int roundNumber)
+        {
+            return await _context.ReviewRounds
+                .Include(x => x.ProjectGroup)
+                    .ThenInclude(x => x.ProjectCourse)
+                        .ThenInclude(x => x.Semester)
+                .Include(x => x.ProjectGroup)
+                    .ThenInclude(x => x.ProjectSupervisors)
+                .Include(x => x.ReviewAssignment)
+                .FirstOrDefaultAsync(x =>
+                    x.ProjectGroupId == projectGroupId &&
+                    x.RoundNumber == roundNumber);
+        }
+
+        public async Task<ReviewRound> CreateAsync(ReviewRound reviewRound)
+        {
+            _context.ReviewRounds.Add(reviewRound);
+            await _context.SaveChangesAsync();
+            return reviewRound;
+        }
     }
 }

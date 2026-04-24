@@ -18,5 +18,7 @@ namespace Schedule_Repository.IRepository
         Task<ProjectGroup> CreateAsync(ProjectGroup projectGroup);
         Task<bool> UpdateAsync(ProjectGroup projectGroup);
         Task<bool> DeleteAsync(ProjectGroup projectGroup);
+        Task<ProjectGroup?> GetByIdWithDetailsAsync(long projectGroupId);
+        Task<List<ProjectGroup>> GetBySemesterAsync(long semesterId);
     }
 }

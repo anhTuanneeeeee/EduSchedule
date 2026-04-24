@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Schedule_Repository.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Schedule_Repository.Models;
 
 namespace Schedule_Repository.Repository
 {
@@ -12,5 +11,7 @@ namespace Schedule_Repository.Repository
     {
         Task<List<ReviewRound>> GetUnscheduledBySemesterAsync(long semesterId);
         Task<ReviewRound?> GetByIdWithDetailsAsync(long reviewRoundId);
+        Task<ReviewRound?> GetByProjectGroupAndRoundNumberAsync(long projectGroupId, int roundNumber);
+        Task<ReviewRound> CreateAsync(ReviewRound reviewRound);
     }
 }
