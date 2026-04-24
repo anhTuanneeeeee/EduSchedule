@@ -230,7 +230,9 @@
                     document.getElementById(`date-${days[i]}`).textContent = displayDate;
                 }
 
-                const promises = Object.values(dateMap).map(d => api.get(`/Teacher/availability?userId=${user.userId}&date=${d}`));
+                const promises = Object.values(dateMap).map(d => 
+                    api.get(`/Teacher/availability?date=${d}`).catch(() => [])
+                );
                 const results = await Promise.all(promises);
 
                 const dates = Object.values(dateMap);
@@ -265,24 +267,27 @@
         async function saveAllAvailability() {
             ui.showLoader();
             try {
-                const user = auth.getUser();
                 const cells = document.querySelectorAll('.slot-cell');
-                const dataByDate = {}; // date -> [slotIds]
+                const dataByDate = {};
 
+                // First, collect ALL dates in the current week
+                cells.forEach(cell => {
+                    const date = cell.dataset.fullDate;
+                    if (date && !dataByDate[date]) dataByDate[date] = [];
+                });
+
+                // Then fill in selected slots
                 cells.forEach(cell => {
                     const date = cell.dataset.fullDate;
                     if (!date) return;
-                    
-                    const slotId = parseInt(cell.dataset.slot);
-                    if (!dataByDate[date]) dataByDate[date] = [];
                     if (cell.classList.contains('selected')) {
-                        dataByDate[date].push(slotId);
+                        dataByDate[date].push(parseInt(cell.dataset.slot));
                     }
                 });
 
-                // Send parallel requests for each date
+                // Send all dates (including empty ones to clear them)
                 const promises = Object.keys(dataByDate).map(date => {
-                    return api.post(`/Teacher/availability?userId=${user.userId}`, {
+                    return api.post(`/Teacher/availability`, {
                         date: date,
                         timeSlotIds: dataByDate[date],
                         note: "Weekly Update"
@@ -291,7 +296,6 @@
 
                 await Promise.all(promises);
                 ui.showAlert('mainAlert', 'Weekly availability updated successfully!', 'success');
-                // Reload to confirm
                 await loadWeeklyAvailability();
             } catch (error) {
                 ui.showAlert('mainAlert', error.message);

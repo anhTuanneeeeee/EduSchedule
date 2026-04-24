@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Schedule_Service.DTOs;
@@ -54,6 +54,15 @@ namespace Schedule.Controllers
                 message = result.Message,
                 data = result.Data
             });
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAssignment(long id, [FromBody] UpdateReviewAssignmentRequestDto request)
+        {
+            var result = await _reviewSchedulingService.UpdateAssignmentAsync(id, request);
+            if (!result.Success)
+                return BadRequest(new { message = result.Message });
+            return Ok(new { message = result.Message });
         }
 
         private long? GetCurrentUserId()

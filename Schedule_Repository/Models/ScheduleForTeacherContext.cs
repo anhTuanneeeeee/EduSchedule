@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -211,7 +211,6 @@ public partial class ScheduleForTeacherContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.SemesterName).HasMaxLength(200);
-            entity.Property(e => e.TernNumber).HasColumnType("integer");
 
         });
 

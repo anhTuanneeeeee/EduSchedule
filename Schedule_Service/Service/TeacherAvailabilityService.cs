@@ -181,7 +181,7 @@ namespace Schedule_Service.Service
                 TeacherCode = a.Teacher.TeacherCode,
                 FullName = a.Teacher.User.FullName,
                 Email = a.Teacher.User.Email,
-                Phone = a.Teacher.User.Phone,
+                Phone = a.Teacher.User.PhoneNumber,
                 Department = a.Teacher.Department
             }).ToList();
         }

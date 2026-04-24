@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Schedule_Repository.Models;
@@ -19,7 +19,6 @@ public partial class Semester
 
     public bool IsActive { get; set; }
 
-    public int? TernNumber { get; set; }
 
     public virtual ICollection<ProjectCourse> ProjectCourses { get; set; } = new List<ProjectCourse>();
 }

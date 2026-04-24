@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Schedule_Repository.IRepository;
 using Schedule_Repository.Models;
 using System;
@@ -81,6 +81,8 @@ namespace Schedule_Repository.Repository
         public async Task<List<TeacherAvailability>> GetAvailableInRangeAsync(DateOnly fromDate, DateOnly toDate, List<long>? timeSlotIds = null)
         {
             var query = _context.TeacherAvailabilities
+                .Include(x => x.Teacher)
+                    .ThenInclude(t => t.User)
                 .Where(x =>
                     x.AvailableDate >= fromDate &&
                     x.AvailableDate <= toDate &&

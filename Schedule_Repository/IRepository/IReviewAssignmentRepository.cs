@@ -1,4 +1,4 @@
-﻿using Schedule_Repository.Models;
+using Schedule_Repository.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,5 +11,7 @@ namespace Schedule_Repository.Repository
     {
         Task<bool> ExistsByReviewRoundIdAsync(long reviewRoundId);
         Task<ReviewAssignment> CreateWithTeachersAsync(ReviewAssignment assignment, List<ReviewAssignmentTeacher> teachers);
+        Task<ReviewAssignment?> GetByIdAsync(long reviewAssignmentId);
+        Task<bool> UpdateAsync(ReviewAssignment assignment);
     }
 }

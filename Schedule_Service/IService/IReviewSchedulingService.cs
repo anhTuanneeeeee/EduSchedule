@@ -1,4 +1,4 @@
-﻿using Schedule_Service.DTOs;
+using Schedule_Service.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,5 +16,9 @@ namespace Schedule_Service.Service
         Task<(bool Success, string Message, CreatedReviewAssignmentResponseDto? Data)> ManualScheduleAsync(
             long assignedByUserId,
             ManualScheduleReviewAssignmentRequestDto request);
+
+        Task<(bool Success, string Message)> UpdateAssignmentAsync(
+            long reviewAssignmentId,
+            UpdateReviewAssignmentRequestDto request);
     }
 }

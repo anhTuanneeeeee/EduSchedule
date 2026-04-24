@@ -1,4 +1,4 @@
-﻿using Schedule_Repository.IRepository;
+using Schedule_Repository.IRepository;
 using Schedule_Repository.Models;
 using Schedule_Repository.Repository;
 using Schedule_Service.DTOs;
@@ -336,6 +336,29 @@ namespace Schedule_Service.Service
             };
 
             return (true, "Xếp lịch thủ công thành công.", response);
+        }
+
+        public async Task<(bool Success, string Message)> UpdateAssignmentAsync(
+            long reviewAssignmentId,
+            UpdateReviewAssignmentRequestDto request)
+        {
+            var assignment = await _reviewAssignmentRepository.GetByIdAsync(reviewAssignmentId);
+            if (assignment == null)
+                return (false, "Không tìm thấy ReviewAssignment.");
+
+            var timeSlot = await _timeSlotRepository.GetByIdAsync(request.TimeSlotId);
+            if (timeSlot == null || !timeSlot.IsActive)
+                return (false, "TimeSlot không tồn tại hoặc đang bị khóa.");
+
+            assignment.AssignedDate = request.AssignedDate;
+            assignment.TimeSlotId = request.TimeSlotId;
+            assignment.Location = request.Location;
+            assignment.Note = request.Note;
+
+            var ok = await _reviewAssignmentRepository.UpdateAsync(assignment);
+            return ok
+                ? (true, "Cập nhật lịch chấm thành công.")
+                : (false, "Cập nhật thất bại.");
         }
 
         private async Task<ReviewRound> GetOrCreateReviewRoundAsync(
