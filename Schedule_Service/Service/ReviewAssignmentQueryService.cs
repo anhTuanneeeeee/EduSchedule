@@ -18,23 +18,12 @@ namespace Schedule_Service.Service
             _reviewAssignmentQueryRepository = reviewAssignmentQueryRepository;
         }
 
-        public async Task<(bool Success, string Message, List<ScheduleOverviewDateDto>? Data)> GetScheduleOverviewAsync(
-            long semesterId,
-            DateOnly? fromDate = null,
-            DateOnly? toDate = null,
-            string? status = null)
+        public async Task<(bool Success, string Message, List<ScheduleOverviewDateDto>? Data)> GetScheduleOverviewAsync(long semesterId)
         {
             if (semesterId <= 0)
                 return (false, "SemesterId không hợp lệ.", null);
 
-            if (fromDate.HasValue && toDate.HasValue && fromDate.Value > toDate.Value)
-                return (false, "fromDate phải nhỏ hơn hoặc bằng toDate.", null);
-
-            var assignments = await _reviewAssignmentQueryRepository.GetScheduleOverviewAsync(
-                semesterId,
-                fromDate,
-                toDate,
-                status);
+            var assignments = await _reviewAssignmentQueryRepository.GetScheduleOverviewAsync(semesterId);
 
             var result = assignments
                 .GroupBy(x => x.AssignedDate)
@@ -77,8 +66,6 @@ namespace Schedule_Service.Service
             {
                 ReviewAssignmentId = item.ReviewAssignmentId,
                 ReviewRoundId = item.ReviewRoundId,
-                RoundNumber = item.ReviewRound.RoundNumber,
-                RoundName = item.ReviewRound.RoundName,
 
                 ProjectGroupId = item.ReviewRound.ProjectGroupId,
                 GroupCode = item.ReviewRound.ProjectGroup.GroupCode,
